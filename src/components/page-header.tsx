@@ -1,25 +1,66 @@
+"use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AccountLink } from "@/components/account-link";
 import { ThemeSwitch } from "@/components/theme-switch";
+
+const pageLinks = [
+  { href: "/builder", label: "Builder" },
+  { href: "/templates", label: "Templates" },
+  { href: "/projects", label: "Projects" },
+  { href: "/docs", label: "Docs" },
+];
+
+/** Primary navigation. Marks the section that matches the current URL. */
+export function HeaderNav({
+  links = pageLinks,
+}: {
+  links?: { href: string; label: string }[];
+}) {
+  const path = usePathname() ?? "";
+  return (
+    <nav className="header-nav" aria-label="Primary">
+      {links.map((link) => {
+        const active =
+          link.href === "/builder"
+            ? path === "/builder"
+            : path === link.href || path.startsWith(`${link.href}/`);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="header-link"
+            aria-current={active ? "page" : undefined}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+/** Shared header for pages outside the builder. */
 export function PageHeader() {
   return (
-    <header className="simple-header">
-      <Link href="/builder">
+    <header className="app-header">
+      <Link href="/builder" className="brand">
         <img
           className="brand-mark"
           src="/brand-mark.png"
-          width={25}
-          height={25}
+          width={24}
+          height={24}
           alt=""
         />
-        BuildBlueprint.app
+        BuildBlueprint<span className="brand-dot">.app</span>
       </Link>
-      <Link href="/builder">Builder</Link>
-      <Link href="/templates">Templates</Link>
-      <Link href="/projects">Projects</Link>
-      <Link href="/docs">Docs</Link>
-      <AccountLink />
-      <ThemeSwitch />
+      <div className="header-divider" aria-hidden="true" />
+      <HeaderNav />
+      <div className="header-spacer" />
+      <div className="header-tools">
+        <AccountLink />
+        <ThemeSwitch />
+      </div>
     </header>
   );
 }

@@ -60,6 +60,32 @@ export function compatibility(p: Project): CompatibilityResult {
       resolution:
         "Choose one primary identity provider, or document an intentional federation.",
     });
+  const runtimes = selected.filter((t) => t.category === "runtime");
+  if (runtimes.length > 1)
+    messages.push({
+      severity: "error",
+      technologyIds: runtimes.map((t) => t.id),
+      message: "More than one JavaScript runtime is selected.",
+      resolution: "Keep a single package manager for the project.",
+    });
+  const nodeFrameworks = [
+    "nextjs",
+    "react-router",
+    "tanstack-start",
+    "nuxt",
+    "sveltekit",
+    "astro",
+    "angular",
+  ];
+  const denoFrameworks = selected.filter((t) => nodeFrameworks.includes(t.id));
+  if (ids.includes("deno") && denoFrameworks.length)
+    messages.push({
+      severity: "warning",
+      technologyIds: ["deno", ...denoFrameworks.map((t) => t.id)],
+      message:
+        "Deno is not the primary runtime for the selected web frameworks.",
+      resolution: "Use npm, pnpm, Yarn, or Bun for this framework.",
+    });
   const frameworks = selected.filter((t) => t.category === "frontend");
   if (frameworks.length > 1)
     messages.push({

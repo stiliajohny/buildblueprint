@@ -2,6 +2,75 @@ import { stringify } from "yaml";
 import { byId } from "@/catalogue";
 import { projectSchema, type Project } from "@/types/project";
 import { compatibility } from "@/features/compatibility";
+
+/** Map a selected package manager to the runtime that executes it. */
+export function javascriptToolchain(ids: string[]) {
+  const id =
+    ["npm", "pnpm", "yarn", "bun", "deno"].find((manager) =>
+      ids.includes(manager),
+    ) ?? "pnpm";
+  const runtime = id === "bun" || id === "deno" ? id : "node";
+  return { runtime, packageManager: id };
+}
+
+/** GitHub Actions workflow for the selected package manager. */
+function ciWorkflow(packageManager: string) {
+  const head =
+    "name: CI\non: [push, pull_request]\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n";
+  const scripts = (run: (script: string) => string) =>
+    ["typecheck", "test", "build"]
+      .map((script) => `      - run: ${run(script)}\n`)
+      .join("");
+  switch (packageManager) {
+    case "npm":
+      return (
+        head +
+        "      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n      - run: npm ci\n" +
+        scripts((script) => `npm run ${script}`)
+      );
+    case "yarn":
+      return (
+        head +
+        "      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: yarn\n      - run: corepack enable\n      - run: yarn install --immutable\n" +
+        scripts((script) => `yarn ${script}`)
+      );
+    case "bun":
+      return (
+        head +
+        "      - uses: oven-sh/setup-bun@v2\n        with:\n          bun-version: 1\n      - run: bun install --frozen-lockfile\n" +
+        scripts((script) =>
+          script === "test" ? "bun test" : `bun run ${script}`,
+        )
+      );
+    case "deno":
+      return (
+        head +
+        "      - uses: denoland/setup-deno@v2\n        with:\n          deno-version: v2.x\n" +
+        scripts((script) => `deno task ${script}`)
+      );
+    default:
+      return (
+        head +
+        "      - uses: pnpm/action-setup@v4\n        with:\n          version: 11\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: pnpm\n      - run: pnpm install --frozen-lockfile\n" +
+        scripts((script) => `pnpm ${script}`)
+      );
+  }
+}
+
+/** Next.js container build that installs with the selected package manager. */
+function dockerfile(packageManager: string) {
+  const serve =
+    'FROM node:22-alpine\nWORKDIR /app\nENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000\nCOPY --from=build --chown=node:node /app/.next/standalone ./\nCOPY --from=build --chown=node:node /app/.next/static ./.next/static\nCOPY --from=build --chown=node:node /app/public ./public\nUSER node\nEXPOSE 3000\nCMD ["node", "server.js"]\n';
+  const build: Record<string, string> = {
+    npm: "FROM node:22-alpine AS build\nWORKDIR /app\nCOPY package.json package-lock.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build\n",
+    yarn: "FROM node:22-alpine AS build\nWORKDIR /app\nRUN corepack enable\nCOPY package.json yarn.lock ./\nRUN yarn install --immutable\nCOPY . .\nRUN yarn build\n",
+    bun: "FROM oven/bun:1-alpine AS build\nWORKDIR /app\nCOPY package.json bun.lock ./\nRUN bun install --frozen-lockfile\nCOPY . .\nRUN bun run build\n",
+    deno: "FROM denoland/deno:alpine AS build\nWORKDIR /app\nCOPY . .\nRUN deno task build\n",
+    pnpm: "FROM node:22-alpine AS build\nWORKDIR /app\nRUN corepack enable\nCOPY package.json pnpm-lock.yaml ./\nRUN pnpm install --frozen-lockfile\nCOPY . .\nRUN pnpm build\n",
+  };
+  return (build[packageManager] ?? build.pnpm) + serve;
+}
+
 export function canonical(input: Project) {
   const p = projectSchema.parse(input);
   const selected = p.selectedTechnologies.map((id) => byId[id]);
@@ -15,6 +84,7 @@ export function canonical(input: Project) {
       description: p.projectDescription,
       requirements: p.requirements,
     },
+    toolchain: { javascript: javascriptToolchain(p.selectedTechnologies) },
     clients: {
       web: { frameworks: ids("frontend"), language: "typescript" },
       mobile: { enabled: ids("mobile").length > 0, frameworks: ids("mobile") },
@@ -83,10 +153,11 @@ export function generateFiles(input: Project): Record<string, string> {
     .map((t) => `| ${t.category} | ${t.name} | ${t.website} |`)
     .join("\n");
   const context = `# ${c.project.name}\n\n${c.project.description || "Define the product requirements before implementation."}\n\nProject type: ${c.project.type}. Deployment: ${c.deployment.profile}.\n\n## Requirements\n${c.project.requirements.map((r) => `- ${r}`).join("\n") || "- No additional requirements selected."}\n\n## Stack\n| Capability | Technology | Reference |\n| --- | --- | --- |\n${stack}\n`;
-  const architecture = `# Architecture\n\nWeb: ${names(c.clients.web.frameworks)}. Mobile: ${names(c.clients.mobile.frameworks)}. Desktop: ${names(c.clients.desktop.frameworks)}.\n\nBackend: ${names(c.backend.providers)}. Databases: ${names(c.backend.databases)}.\n\nAuthentication: ${names(c.auth.providers)}; methods: ${c.auth.methods.join(", ") || "none"}. Enforce authorization on the server and database, not only in the UI.\n\nHosting: ${names(c.deployment.providers)}. Infrastructure: ${names(c.deployment.infrastructure)}.\n\nKeep UI, domain logic, persistence and external service adapters separate. Validate every external boundary.\n\n## Compatibility review\n${issues.messages.map((m) => `- ${m.severity}: ${m.message} ${m.resolution ?? ""}`).join("\n") || "No conflicts detected by the configured rules. This is not a universal compatibility guarantee."}\n`;
+  const js = c.toolchain.javascript;
+  const architecture = `# Architecture\n\nWeb: ${names(c.clients.web.frameworks)}. Mobile: ${names(c.clients.mobile.frameworks)}. Desktop: ${names(c.clients.desktop.frameworks)}.\n\nJavaScript: ${js.packageManager} on ${js.runtime}.\n\nBackend: ${names(c.backend.providers)}. Databases: ${names(c.backend.databases)}.\n\nAuthentication: ${names(c.auth.providers)}; methods: ${c.auth.methods.join(", ") || "none"}. Enforce authorization on the server and database, not only in the UI.\n\nHosting: ${names(c.deployment.providers)}. Infrastructure: ${names(c.deployment.infrastructure)}.\n\nKeep UI, domain logic, persistence and external service adapters separate. Validate every external boundary.\n\n## Compatibility review\n${issues.messages.map((m) => `- ${m.severity}: ${m.message} ${m.resolution ?? ""}`).join("\n") || "No conflicts detected by the configured rules. This is not a universal compatibility guarantee."}\n`;
   const security = `# Security rules\n\nSelected controls: ${c.security.join(", ")}.\n\n- Validate external input with ${has("zod") ? "Zod" : "the chosen validation library"}.\n- Never ship service credentials to clients. Separate public configuration from secrets.\n- Authorize every resource access. ${has("supabase") ? "Enable RLS on every exposed Supabase table and test ownership isolation." : ""}\n- Rate-limit authenticated and public mutation endpoints.\n- Configure secure cookies, CSP and origin checks.\n- Verify payment webhook signatures and make handling idempotent.\n- Back up data and test restoration before launch.\n- Apply retention and consent policies to sensitive data and analytics.\n`;
   const testing = `# Testing\n\nUse unit tests for business rules, integration tests for service boundaries, and Playwright for primary browser journeys.\n\nCover authentication, ownership isolation, invalid input, empty states, provider failures, payment webhook replay and persistence.\n\nMock paid APIs and model workers in CI. Never download model weights in automated tests.\n`;
-  const frontend = `# Frontend\n\nFrameworks: ${names(c.clients.web.frameworks)}. Components: ${names(c.ui.components)}. Libraries: ${names(c.libraries.frontend)}.\n\nUse accessible semantic controls, explicit loading/error states, responsive layouts and keyboard navigation. Keep data and business rules outside components. ${has("nextjs") ? "Use App Router and Server Components by default; add client boundaries only for interactivity." : ""}\n`;
+  const frontend = `# Frontend\n\nFrameworks: ${names(c.clients.web.frameworks)}. Components: ${names(c.ui.components)}. Libraries: ${names(c.libraries.frontend)}.\n\nInstall dependencies and run scripts with ${js.packageManager} on the ${js.runtime} runtime.\n\nUse accessible semantic controls, explicit loading/error states, responsive layouts and keyboard navigation. Keep data and business rules outside components. ${has("nextjs") ? "Use App Router and Server Components by default; add client boundaries only for interactivity." : ""}\n`;
   const backend = `# Backend\n\nProviders: ${names(c.backend.providers)}. Libraries: ${names(c.libraries.backend)}.\n\nUse server-side service adapters, validate inputs and outputs, time out upstream requests, and do not leak provider errors or secrets. Implement idempotency for writes and retries.\n`;
   const ai = `# AI\n\nProviders: ${names(c.ai.providers)}.\n\n${has("browser-ai") ? "Run Transformers.js in a Web Worker; detect WebGPU and storage, display model size and licence, and require download consent. Never send browser-mode prompts to a server.\n" : ""}${has("ollama") ? "Connect to the user-configured local Ollama endpoint with explicit consent. Restrict the endpoint to loopback and document CORS setup.\n" : ""}Cloud keys stay on the server. Authenticate and rate-limit cloud generation, cap output tokens, and treat model output as untrusted.\n`;
   const generatedPrompt = `Implement the project defined below. Read STACK.yaml as the canonical configuration and follow AGENTS.md and rules/*.md. Resolve compatibility issues before coding. Do not silently add alternative providers. Build and test the complete primary user journey.\n\n${context}\n${architecture}\n## Canonical stack\n\n\`\`\`yaml\n${yaml}\`\`\`\n`;
@@ -138,8 +209,7 @@ export function generateFiles(input: Project): Record<string, string> {
     has("nextjs") &&
     (has("kubernetes") || c.deployment.profile !== "managed")
   ) {
-    files["Dockerfile"] =
-      'FROM node:22-alpine AS build\nWORKDIR /app\nRUN corepack enable\nCOPY package.json pnpm-lock.yaml ./\nRUN pnpm install --frozen-lockfile\nCOPY . .\nRUN pnpm build\nFROM node:22-alpine\nWORKDIR /app\nENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000\nCOPY --from=build --chown=node:node /app/.next/standalone ./\nCOPY --from=build --chown=node:node /app/.next/static ./.next/static\nCOPY --from=build --chown=node:node /app/public ./public\nUSER node\nEXPOSE 3000\nCMD ["node", "server.js"]\n';
+    files["Dockerfile"] = dockerfile(js.packageManager);
     files["docker-compose.yml"] =
       'services:\n  app:\n    build: .\n    ports: ["3000:3000"]\n    env_file: .env.local\n    restart: unless-stopped\n';
   }
@@ -182,8 +252,7 @@ export function generateFiles(input: Project): Record<string, string> {
   if (has("supabase"))
     files["supabase/README.md"] =
       "Use Supabase CLI migrations and test RLS ownership isolation. For self-hosting, use the official versioned Supabase Docker Compose stack: https://supabase.com/docs/guides/self-hosting/docker. Do not treat a lone PostgreSQL container as a full Supabase deployment.\n";
-  files[".github/workflows/ci.yml"] =
-    "name: CI\non: [push, pull_request]\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: pnpm/action-setup@v4\n        with:\n          version: 11\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: pnpm\n      - run: pnpm install --frozen-lockfile\n      - run: pnpm typecheck\n      - run: pnpm test\n      - run: pnpm build\n";
+  files[".github/workflows/ci.yml"] = ciWorkflow(js.packageManager);
   return files;
 }
 export async function downloadPack(p: Project) {

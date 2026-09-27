@@ -2,6 +2,7 @@ import { defaultProject, type Project } from "@/types/project";
 import { dependencies } from "@/features/compatibility";
 const base = [
   "nextjs",
+  "pnpm",
   "shadcn",
   "base-ui",
   "tailwind",

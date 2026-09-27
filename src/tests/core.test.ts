@@ -74,6 +74,22 @@ describe("rules", () => {
   it("recognises the default stack", () => {
     expect(compatibility(defaultProject).status).toBe("compatible");
   });
+  it("rejects more than one JavaScript runtime", () => {
+    expect(
+      compatibility(
+        project({
+          selectedTechnologies: ["nextjs", "npm", "pnpm"],
+        }),
+      ).status,
+    ).toBe("conflict");
+  });
+  it("warns when Deno is paired with a Node web framework", () => {
+    expect(
+      compatibility(
+        project({ selectedTechnologies: ["nextjs", "deno"] }),
+      ).messages.some((message) => message.message.includes("Deno")),
+    ).toBe(true);
+  });
   it("recommends only missing libraries", () => {
     const p = project({ selectedTechnologies: ["nextjs", "supabase"] });
     expect(recommendations(p)[0].recommend).toContain("supabase-ssr");
@@ -143,6 +159,26 @@ describe("generation", () => {
         ".env.example"
       ],
     ).toContain("OPENAI_API_KEY=");
+  });
+  it("writes install commands for the selected JavaScript runtime", () => {
+    const npm = generateFiles(
+      project({ selectedTechnologies: ["nextjs", "npm", "kubernetes"] }),
+    );
+    expect(npm[".github/workflows/ci.yml"]).toContain("npm ci");
+    expect(npm.Dockerfile).toContain("npm ci");
+    expect(parse(npm["STACK.yaml"]).toolchain.javascript).toEqual({
+      runtime: "node",
+      packageManager: "npm",
+    });
+    const bun = generateFiles(
+      project({ selectedTechnologies: ["nextjs", "bun"] }),
+    );
+    expect(bun[".github/workflows/ci.yml"]).toContain(
+      "bun install --frozen-lockfile",
+    );
+    expect(bun["rules/frontend.md"]).toContain("bun");
+    const deno = generateFiles(project({ selectedTechnologies: ["deno"] }));
+    expect(deno[".github/workflows/ci.yml"]).toContain("deno task build");
   });
   it("sanitizes archive paths", () => {
     expect(slug("../../Hello / World")).toBe("hello-world");

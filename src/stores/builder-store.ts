@@ -1,7 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { byId } from "@/catalogue";
 import { defaultProject, projectSchema, type Project } from "@/types/project";
 import { dependencies } from "@/features/compatibility";
+
+/** Keep a single JavaScript runtime when one is turned on. */
+function withSingleRuntime(selected: string[], id: string, turningOn: boolean) {
+  if (!turningOn || byId[id]?.category !== "runtime") return selected;
+  return selected.filter(
+    (item) => item === id || byId[item]?.category !== "runtime",
+  );
+}
 interface BuilderState {
   project: Project;
   currentStep: string;
@@ -19,14 +28,19 @@ export const useBuilder = create<BuilderState>()(
       currentStep: "frontend",
       update: (patch) => set((s) => ({ project: { ...s.project, ...patch } })),
       toggleTechnology: (id) =>
-        set((s) => ({
-          project: {
-            ...s.project,
-            selectedTechnologies: s.project.selectedTechnologies.includes(id)
-              ? s.project.selectedTechnologies.filter((x) => x !== id)
-              : dependencies([...s.project.selectedTechnologies, id]),
-          },
-        })),
+        set((s) => {
+          const current = s.project.selectedTechnologies;
+          const turningOn = !current.includes(id);
+          const selected = turningOn
+            ? dependencies([...current, id])
+            : current.filter((item) => item !== id);
+          return {
+            project: {
+              ...s.project,
+              selectedTechnologies: withSingleRuntime(selected, id, turningOn),
+            },
+          };
+        }),
       addTechnologies: (ids) =>
         set((s) => ({
           project: {

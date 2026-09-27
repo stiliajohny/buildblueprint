@@ -47,6 +47,7 @@ import { BrowserAIPanel } from "@/components/browser-ai/browser-ai-panel";
 import { BrowserLlmOffer } from "@/components/browser-ai/browser-llm-offer";
 import { PromptRefiner } from "@/components/browser-ai/prompt-refiner";
 import { browserLlm } from "@/lib/browser-ai/session";
+import { HeaderNav } from "@/components/page-header";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { saveProject } from "@/features/project/service";
 export function Builder({
@@ -86,6 +87,7 @@ export function Builder({
   const [notice, setNotice] = useState("");
   const [highlight, setHighlight] = useState("");
   const [busy, setBusy] = useState(false);
+  const [shortcut, setShortcut] = useState("⌘K");
   useEffect(() => () => browserLlm.reset(), []);
   useEffect(() => {
     setReady(true);
@@ -96,6 +98,7 @@ export function Builder({
       }
     };
     window.addEventListener("keydown", onKey);
+    if (!/Mac|iPhone|iPad/.test(navigator.userAgent)) setShortcut("Ctrl K");
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   useEffect(() => {
@@ -200,45 +203,45 @@ export function Builder({
           <img
             className="brand-mark"
             src="/brand-mark.png"
-            width={25}
-            height={25}
+            width={24}
+            height={24}
             alt=""
           />
           BuildBlueprint<span className="brand-dot">.app</span>
         </Link>
-        <div className="header-divider" />
-        <Link href="/builder" className="header-link selected">
-          Builder
-        </Link>
-        <Link href="/templates" className="header-link">
-          Templates
-        </Link>
-        <Link href="/projects" className="header-link">
-          Projects
-        </Link>
+        <div className="header-divider" aria-hidden="true" />
+        <HeaderNav
+          links={[
+            { href: "/builder", label: "Builder" },
+            { href: "/templates", label: "Templates" },
+            { href: "/projects", label: "Projects" },
+          ]}
+        />
         <div className="header-spacer" />
-        <button className="search-launch" onClick={() => setSearch(true)}>
-          <Search size={14} />
-          <span>Search technologies</span>
-          <kbd>⌘ K</kbd>
-        </button>
-        <ThemeSwitch />
-        <button
-          className="icon-button"
-          aria-label="Open chat"
-          aria-pressed={pane === "chat"}
-          onClick={() => openChat()}
-        >
-          <MessageSquare size={18} />
-        </button>
-        <AccountLink />
-        <button
-          className="icon-button mobile-summary"
-          aria-label="Open project summary"
-          onClick={() => setSummary(true)}
-        >
-          <PanelRight size={18} />
-        </button>
+        <div className="header-tools">
+          <button className="search-launch" onClick={() => setSearch(true)}>
+            <Search size={16} />
+            <span>Search technologies</span>
+            <kbd>{shortcut}</kbd>
+          </button>
+          <ThemeSwitch />
+          <button
+            className="icon-button"
+            aria-label="Open chat"
+            aria-pressed={pane === "chat"}
+            onClick={() => openChat()}
+          >
+            <MessageSquare size={16} />
+          </button>
+          <AccountLink />
+          <button
+            className="icon-button mobile-summary"
+            aria-label="Open project summary"
+            onClick={() => setSummary(true)}
+          >
+            <PanelRight size={16} />
+          </button>
+        </div>
       </header>
       <div
         className="builder-grid"

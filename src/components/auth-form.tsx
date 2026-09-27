@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { authErrorMessage, type AuthMode } from "@/lib/auth/redirect";
 import { browserClient, configured } from "@/lib/supabase/client";
 
+/* Social sign-in is paused until the providers are configured.
 const providers = [
   ["google", "Google"],
   ["apple", "Apple"],
   ["facebook", "Facebook"],
   ["linkedin_oidc", "LinkedIn"],
 ] as const;
+*/
 
 /** Collects email, password, or a one-time code and talks to Supabase Auth. */
 export function AuthForm({
@@ -120,7 +122,7 @@ export function AuthForm({
     }
   }
 
-  async function oauth(provider: (typeof providers)[number][0]) {
+  /* async function oauth(provider: (typeof providers)[number][0]) {
     setBusy(true);
     setError("");
     setStatus("");
@@ -136,7 +138,7 @@ export function AuthForm({
       setError(messageFrom(caught));
       setBusy(false);
     }
-  }
+  } */
 
   return (
     <div className="auth-card">
@@ -250,6 +252,7 @@ export function AuthForm({
               <Link href="/auth">Back to sign in</Link>
             )}
           </p>
+          {/* Social sign-in is paused until the providers are configured.
           {mode !== "forgot" && (
             <>
               <div className="auth-divider">or</div>
@@ -267,6 +270,7 @@ export function AuthForm({
               </div>
             </>
           )}
+          */}
           {mode === "signin" && (
             <nav className="auth-alt" aria-label="Other sign-in methods">
               <Link href="/auth?mode=magic">Email link</Link>
