@@ -1,0 +1,58 @@
+import { z } from "zod";
+export const categories = [
+  "frontend",
+  "mobile",
+  "desktop",
+  "backend",
+  "database",
+  "auth",
+  "ui",
+  "frontend-library",
+  "backend-library",
+  "ai",
+  "payments",
+  "email",
+  "analytics",
+  "monitoring",
+  "feature-flags",
+  "storage",
+  "search",
+  "infrastructure",
+  "deployment",
+] as const;
+export const technologySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  category: z.enum(categories),
+  description: z.string(),
+  website: z.url(),
+  docs: z.url().optional(),
+  github: z.url().optional(),
+  logo: z.string().optional(),
+  openSource: z.boolean(),
+  freeTier: z.boolean().optional(),
+  deployment: z.object({
+    saas: z.boolean(),
+    selfHosted: z.boolean(),
+    local: z.boolean(),
+    browser: z.boolean().optional(),
+  }),
+  capabilities: z.array(z.string()),
+  recommendedFor: z.array(z.string()),
+  alternatives: z.array(z.string()),
+  compatibleWith: z.array(z.string()).optional(),
+  conflictsWith: z.array(z.string()).optional(),
+  requires: z.array(z.string()).optional(),
+  implies: z.array(z.string()).optional(),
+  tags: z.array(z.string()),
+  maturity: z.enum(["stable", "beta", "experimental"]),
+  pricing: z
+    .object({
+      type: z.enum(["free", "freemium", "paid", "usage-based", "open-source"]),
+    })
+    .optional(),
+  licence: z.object({ name: z.string(), url: z.url().optional() }).optional(),
+});
+export type Technology = z.infer<typeof technologySchema>;
+export type Category = Technology["category"];

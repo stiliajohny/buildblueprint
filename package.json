@@ -1,0 +1,51 @@
+{
+  "name": "buildblueprint",
+  "version": "1.0.0",
+  "description": "BuildBlueprint \u2014 technology stack builder and implementation pack generator",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "next build --webpack",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format:check": "prettier --check src e2e scripts *.ts *.json *.yaml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@11.25.0",
+  "type": "module",
+  "dependencies": {
+    "@base-ui/react": "1.8.0",
+    "@fontsource/inter": "5.3.0",
+    "@huggingface/transformers": "4.3.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
+    "clsx": "2.1.1",
+    "jszip": "3.10.2",
+    "lucide-react": "1.48.0",
+    "next": "16.3.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "3.7.0",
+    "yaml": "2.9.1",
+    "zod": "4.6.5",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "agent-browser": "0.38.1",
+    "prettier": "3.9.9",
+    "simple-icons": "16.32.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vitest": "5.0.2"
+  },
+  "private": true
+}
