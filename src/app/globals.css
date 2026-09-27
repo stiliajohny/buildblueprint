@@ -264,6 +264,9 @@ kbd {
 }
 .sign-in {
   font-size: 12px;
+  font-weight: 500;
+  color: var(--bb-primary);
+  white-space: nowrap;
 }
 .builder-shell {
   height: 100dvh;
@@ -761,7 +764,7 @@ kbd {
 .desktop-summary {
   position: relative;
   border-left: 1px solid var(--bb-border);
-  padding: 20px;
+  padding: 16px;
   overflow: auto;
   background: var(--bb-surface);
 }
@@ -769,7 +772,7 @@ kbd {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -4px;
+  left: 0;
   z-index: 3;
   width: 8px;
   padding: 0;
@@ -791,7 +794,8 @@ html.is-resizing-summary * {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 .summary-title h2 {
   font-size: 14px;
@@ -801,28 +805,28 @@ html.is-resizing-summary * {
   font-size: 9px;
   color: var(--bb-text-secondary);
   border: 1px solid var(--bb-border);
-  padding: 3px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
   background: var(--bb-sidebar);
 }
 .compatibility {
-  padding: 11px;
+  padding: 12px;
   border: 1px solid var(--bb-success-border);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--bb-success-soft);
   color: var(--bb-success);
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 .compatibility > div {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   font-size: 12px;
 }
 .compatibility p {
   font-size: 10px;
-  line-height: 1.6;
-  margin-top: 5px;
+  line-height: 1.5;
+  margin-top: 8px;
 }
 .compatibility.warning {
   background: var(--bb-warning-soft);
@@ -836,9 +840,9 @@ html.is-resizing-summary * {
 }
 .compatibility button {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   align-items: center;
-  margin-top: 6px;
+  margin-top: 8px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -846,28 +850,32 @@ html.is-resizing-summary * {
 }
 .desktop-summary section,
 .sheet section {
-  margin-bottom: 23px;
+  margin-bottom: 16px;
 }
 .desktop-summary h3,
 .sheet h3 {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.075em;
   color: var(--bb-text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .stack-rows {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 8px;
 }
 .stack-rows > div {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  align-items: baseline;
+  gap: 12px;
   font-size: 11px;
+  line-height: 1.4;
 }
 .stack-rows > div > span {
   color: var(--bb-text-secondary);
@@ -879,25 +887,27 @@ html.is-resizing-summary * {
 }
 .chips {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 .chips > span {
   border: 1px solid var(--bb-border);
   border-radius: 4px;
   background: var(--bb-sidebar);
-  padding: 4px 6px;
+  padding: 4px 8px;
   font-size: 10px;
+  line-height: 1.4;
 }
-.desktop-summary select {
-  font-size: 11px;
-  padding: 8px;
+.desktop-summary select,
+.sheet .summary-pane select {
+  font-size: 12px;
+  padding: 8px 12px;
 }
 .file-preview {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0;
+  padding: 8px 0;
   border: 0;
   background: transparent;
   width: 100%;
@@ -913,19 +923,19 @@ html.is-resizing-summary * {
   display: block;
   font-size: 9px;
   color: var(--bb-text-secondary);
-  margin-top: 5px;
+  margin-top: 4px;
 }
 .ai-teaser {
   background: var(--bb-sidebar);
   border: 1px solid var(--bb-border);
-  border-radius: 7px;
+  border-radius: 8px;
   padding: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 .ai-teaser > div {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 11px;
 }
 .ai-teaser .pill {
@@ -933,35 +943,42 @@ html.is-resizing-summary * {
   font-size: 8px;
 }
 .ai-teaser p {
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 1.5;
   color: var(--bb-text-secondary);
-  margin: 8px 0 10px;
+  margin: 8px 0;
 }
 .ai-teaser button {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   background: var(--bb-surface);
   border: 1px solid var(--bb-border);
-  border-radius: 4px;
-  font-size: 10px;
-  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 8px 12px;
 }
 .summary-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+.summary-actions .btn {
+  width: 100%;
+  gap: 8px;
+}
 .summary-actions small {
-  font-size: 9px;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--bb-text-secondary);
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  margin: 3px 0;
+  gap: 8px;
+  margin: 0;
 }
 .step-footer {
   display: flex;
@@ -1246,45 +1263,164 @@ html.is-resizing-summary * {
   margin-bottom: 25px;
 }
 .simple-header {
-  height: 56px;
+  height: 46px;
   border-bottom: 1px solid var(--bb-border);
   background: var(--bb-surface);
   display: flex;
   align-items: center;
-  padding: 0 24px;
-  gap: 25px;
+  padding: 0 18px;
+  gap: 20px;
   font-size: 12px;
 }
 .simple-header a:first-child {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   font-weight: 600;
   margin-right: auto;
 }
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px 64px;
+}
 .auth-card {
-  max-width: 430px;
-  margin: 55px auto;
+  width: 100%;
+  max-width: 400px;
   border: 1px solid var(--bb-border);
-  border-radius: 10px;
-  padding: 25px;
+  border-radius: 8px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
+  background: var(--bb-surface);
 }
 .auth-card h1 {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 600;
+  letter-spacing: -0.3px;
 }
 .auth-card form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
+}
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.auth-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auth-label-row a {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bb-primary);
+}
+.auth-card input {
+  font-size: 16px;
+  min-height: 40px;
+}
+.auth-hint {
+  margin-top: -6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--bb-text-secondary);
+}
+.password-field {
+  position: relative;
+}
+.password-field input {
+  padding-right: 40px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--bb-text-secondary);
+}
+.password-toggle:hover {
+  color: var(--bb-text);
+}
+.auth-note {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.auth-note.error {
+  background: var(--bb-danger-soft);
+  color: var(--bb-danger);
+}
+.auth-note.success {
+  background: var(--bb-success-soft);
+  color: var(--bb-success);
+  border: 1px solid var(--bb-success-border);
+}
+.auth-note a,
+.auth-switch a,
+.auth-quiet {
+  color: var(--bb-primary);
+  font-weight: 500;
+}
+.auth-switch,
+.auth-quiet,
+.auth-alt {
+  font-size: 12px;
+  text-align: center;
+}
+.auth-switch,
+.auth-alt {
+  color: var(--bb-text-secondary);
+}
+.auth-alt {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.auth-alt a:hover,
+.auth-quiet:hover,
+.auth-switch a:hover {
+  color: var(--bb-primary-hover);
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--bb-text-muted);
+  font-size: 11px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--bb-border);
+}
+.auth-card .btn.primary {
+  width: 100%;
+  min-height: 40px;
 }
 .auth-providers {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+.auth-providers .btn {
+  white-space: normal;
+  min-height: 40px;
+  text-align: center;
 }
 .ai-form {
   display: flex;
@@ -1353,14 +1489,15 @@ html.is-resizing-summary * {
 .summary-switch {
   display: flex;
   gap: 4px;
-  padding: 0 0 12px;
+  margin-bottom: 16px;
 }
 .summary-switch button {
   border: 1px solid transparent;
   background: transparent;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 12px;
+  line-height: 1.2;
   color: var(--bb-text-secondary);
 }
 .summary-switch button[aria-selected="true"] {
@@ -1374,8 +1511,10 @@ html.is-resizing-summary * {
   padding: 0;
   overflow: hidden;
 }
-.desktop-summary.is-chat .summary-switch {
-  padding: 10px 12px;
+.desktop-summary.is-chat .summary-switch,
+.sheet .summary-pane.is-chat .summary-switch {
+  margin-bottom: 0;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--bb-border);
 }
 .summary-pane.is-chat {
@@ -1393,69 +1532,104 @@ html.is-resizing-summary * {
 .chat-dock .llm-chat {
   flex: 1;
   max-height: none;
-  padding: 12px;
+  gap: 12px;
+  padding: 16px;
 }
 .chat-dock .llm-compose {
   border-top: 1px solid var(--bb-border);
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.chat-dock .llm-compose textarea {
+  min-width: 0;
+  width: auto;
+  padding: 8px 12px;
 }
 .chat-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 0 12px 8px;
+  gap: 8px;
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--bb-border);
 }
 .chat-setup {
   overflow: auto;
-  padding: 4px 16px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+}
+.chat-setup label input,
+.chat-setup label textarea,
+.chat-setup label select {
+  margin-top: 8px;
 }
 .chat-suggestions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .chat-suggestions button {
   text-align: left;
   border: 1px solid var(--bb-border);
   border-radius: 8px;
   background: var(--bb-sidebar);
-  padding: 8px 10px;
+  padding: 8px 12px;
   font-size: 12px;
+  line-height: 1.4;
+}
+.chat-suggestions button:hover {
+  background: var(--bb-primary-soft);
 }
 .chat-status {
-  padding: 0 12px 10px;
+  padding: 0 16px 12px;
 }
 .llm-bubble .btn {
+  width: 100%;
   margin-top: 8px;
+  white-space: normal;
 }
 .saved-note {
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--bb-success);
   font-size: 11px;
+  line-height: 1.4;
 }
 .sheet .summary-pane.is-chat {
   height: calc(100dvh - 88px);
+}
+.sheet .chat-dock .llm-chat-bar,
+.sheet .chat-actions,
+.sheet .chat-dock .llm-chat,
+.sheet .chat-dock .llm-compose,
+.sheet .chat-status,
+.sheet .chat-setup,
+.sheet .summary-pane.is-chat .summary-switch {
+  padding-left: 0;
+  padding-right: 0;
 }
 .llm-chat-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  padding: 12px 16px 0;
   font-size: 12px;
+  line-height: 1.4;
+}
+.llm-chat-bar span {
+  color: var(--bb-text-secondary);
 }
 .llm-bubble {
   border: 1px solid var(--bb-border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 12px;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 .llm-bubble strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   font-size: 11px;
 }
 .llm-bubble p {
@@ -1598,8 +1772,7 @@ html.is-resizing-summary * {
   .brand-dot,
   .header-divider,
   .header-link,
-  .search-launch kbd,
-  .sign-in {
+  .search-launch kbd {
     display: none;
   }
   .builder-main {
@@ -1678,11 +1851,14 @@ html.is-resizing-summary * {
     padding: 25px 16px;
   }
   .simple-header {
-    padding: 0 16px;
-    gap: 15px;
+    padding: 0 12px;
+    gap: 10px;
   }
-  .auth-card {
-    margin: 30px 16px;
+  .simple-header a:not(:first-child):not(.sign-in) {
+    display: none;
+  }
+  .auth-page {
+    padding-top: 24px;
   }
   .dialog-body {
     padding: 16px;

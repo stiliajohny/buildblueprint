@@ -57,6 +57,7 @@ export const defaultProject: Project = {
   mode: "expert",
   selectedTechnologies: [
     "nextjs",
+    "pnpm",
     "supabase",
     "postgresql",
     "supabase-auth",

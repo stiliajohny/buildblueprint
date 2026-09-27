@@ -28,6 +28,7 @@ import { compatibility } from "@/features/compatibility";
 import { downloadPack, generateFiles } from "@/features/generator";
 import { projectSchema } from "@/types/project";
 import type { Technology } from "@/types/technology";
+import { AccountLink } from "@/components/account-link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Modal } from "@/components/ui/dialog";
@@ -109,9 +110,10 @@ export function Builder({
     if (currentStep === "review") setPane("chat");
   }, [currentStep]);
   useEffect(() => {
-    const saved = Number(localStorage.getItem("bb-summary-width"));
-    if (Number.isFinite(saved))
-      setSummaryWidth(clampSummaryWidth(saved, window.innerWidth));
+    const saved = localStorage.getItem("bb-summary-width");
+    const width = Number(saved);
+    if (saved !== null && Number.isFinite(width))
+      setSummaryWidth(clampSummaryWidth(width, window.innerWidth));
   }, []);
   useEffect(() => {
     const query = window.matchMedia("(max-width: 1279px)");
@@ -229,9 +231,7 @@ export function Builder({
         >
           <MessageSquare size={18} />
         </button>
-        <Link href="/auth" className="sign-in">
-          Sign in
-        </Link>
+        <AccountLink />
         <button
           className="icon-button mobile-summary"
           aria-label="Open project summary"

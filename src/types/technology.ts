@@ -19,6 +19,7 @@ export const categories = [
   "search",
   "infrastructure",
   "deployment",
+  "runtime",
 ] as const;
 export const technologySchema = z.object({
   id: z.string(),

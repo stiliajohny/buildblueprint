@@ -35,9 +35,9 @@ export function SummaryResize({
   }
 
   return (
-    <div
+    <button
+      type="button"
       className="summary-resize"
-      role="separator"
       aria-orientation="vertical"
       aria-label="Resize side panel"
       aria-valuemin={SUMMARY_MIN}

@@ -42,7 +42,7 @@ For a managed development runner, `scripts/dev.mjs` accepts `--host`, `--port` a
 1. Create/select a Supabase project.
 2. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 3. Apply the SQL migration in `supabase/migrations` once to the hosted project. Existing databases should receive a reviewed migration, not a blind re-run.
-4. Add `http://localhost:3000/auth/callback` and your deployed origin's `/auth/callback` to Supabase redirect URLs. Set the Site URL to the deployed origin.
+4. Add `http://localhost:3000/auth/callback` and your deployed origin's `/auth/callback` to Supabase redirect URLs. Set the Site URL to the deployed origin. Password reset uses that same callback, then opens `/auth/update-password`.
 5. Enable the desired OAuth providers: Google, Apple, Facebook and LinkedIn OIDC, with their own credentials.
 6. Configure Twilio in Supabase for SMS OTP. For email OTP, use an email template containing `{{ .Token }}`; magic links use `{{ .ConfirmationURL }}`. A template may include both.
 7. Configure production SMTP, email confirmation, auth rate limits and bot protection before public launch.

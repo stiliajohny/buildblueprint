@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountLink } from "@/components/account-link";
 import { ThemeSwitch } from "@/components/theme-switch";
 export function PageHeader() {
   return (
@@ -17,6 +18,7 @@ export function PageHeader() {
       <Link href="/templates">Templates</Link>
       <Link href="/projects">Projects</Link>
       <Link href="/docs">Docs</Link>
+      <AccountLink />
       <ThemeSwitch />
     </header>
   );

@@ -8,7 +8,7 @@ export const steps = [
   ["analytics", "Analytics", "Product and marketing"],
   ["monitoring", "Monitoring", "Errors and observability"],
   ["features", "Feature flags", "Release and experimentation"],
-  ["libraries", "Libraries", "UI, frontend and backend"],
+  ["libraries", "Libraries", "Runtime, UI and libraries"],
   ["deployment", "Deployment", "Hosting and infrastructure"],
   ["security", "Security", "Best practices and tooling"],
   ["review", "Review", "Your project blueprint"],
@@ -22,7 +22,7 @@ export const stepCategories: Record<string, string[]> = {
   analytics: ["analytics"],
   monitoring: ["monitoring"],
   features: ["feature-flags"],
-  libraries: ["ui", "frontend-library", "backend-library"],
+  libraries: ["runtime", "ui", "frontend-library", "backend-library"],
   deployment: ["deployment", "infrastructure"],
 };
 export function stepFor(category: string) {
@@ -52,4 +52,5 @@ export const categoryLabels: Record<string, string> = {
   search: "Search",
   infrastructure: "Infrastructure as code",
   deployment: "Hosting & edge",
+  runtime: "JavaScript runtime",
 };
