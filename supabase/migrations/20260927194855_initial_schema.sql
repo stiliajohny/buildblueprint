@@ -1,4 +1,5 @@
--- Apply once in a new Supabase project via the SQL editor or CLI migration.
+-- Hosted project schema for saved projects and the cloud AI quota.
+-- Apply once. Re-running fails where policies and ai_usage already exist.
 create table if not exists public.projects (
  id uuid primary key default gen_random_uuid(),
  user_id uuid not null references auth.users(id) on delete cascade,

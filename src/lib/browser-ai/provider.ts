@@ -1,11 +1,25 @@
-import type { AIProvider, AIRequest, AIChunk } from "@/lib/ai/types";
+import type { AIProvider, AIRequest, AIChunk, ChatTurn } from "@/lib/ai/types";
 import { projectContext } from "@/lib/ai/context";
+
 export type WorkerEvent = {
   type: "ready" | "progress" | "chunk" | "done" | "error";
   text?: string;
   message?: string;
   progress?: number;
+  file?: string;
 };
+
+/** Caps chat turns before they are posted to the local worker. */
+export function sanitizeMessages(messages: ChatTurn[]) {
+  return messages.slice(-12).map((message) => ({
+    role:
+      message.role === "system" || message.role === "assistant"
+        ? message.role
+        : "user",
+    content: message.content.slice(0, 12000),
+  }));
+}
+
 export class BrowserAIProvider implements AIProvider {
   id = "browser";
   private ready = false;
@@ -13,11 +27,11 @@ export class BrowserAIProvider implements AIProvider {
   async available() {
     return this.ready;
   }
-  load(model: string, onProgress: (n: number) => void) {
+  load(model: string, onProgress: (progress: number, file?: string) => void) {
     return new Promise<void>((resolve, reject) => {
       const handler = (event: MessageEvent<WorkerEvent>) => {
         if (event.data.type === "progress")
-          onProgress(event.data.progress ?? 0);
+          onProgress(event.data.progress ?? 0, event.data.file);
         if (event.data.type === "ready" || event.data.type === "error") {
           cleanup();
           if (event.data.type === "ready") {
@@ -44,10 +58,11 @@ export class BrowserAIProvider implements AIProvider {
       this.worker.postMessage({ type: "load", model });
     });
   }
-  async *generate(r: AIRequest): AsyncIterable<AIChunk> {
+  async *generate(request: AIRequest): AsyncIterable<AIChunk> {
     if (!this.ready) throw new Error("Download a model first");
     const queue: WorkerEvent[] = [];
     let wake: () => void = () => {};
+    let cancelled = false;
     const receive = (event: MessageEvent<WorkerEvent>) => {
       queue.push(event.data);
       wake();
@@ -57,20 +72,22 @@ export class BrowserAIProvider implements AIProvider {
       wake();
     };
     const abort = () => {
-      this.worker.terminate();
-      this.ready = false;
-      queue.push({ type: "error", message: "Generation stopped." });
-      wake();
+      cancelled = true;
+      this.worker.postMessage({ type: "cancel" });
     };
     this.worker.addEventListener("message", receive);
     this.worker.addEventListener("error", fail);
-    r.signal?.addEventListener("abort", abort);
+    request.signal?.addEventListener("abort", abort);
+    const messages = sanitizeMessages(
+      request.messages ?? [
+        { role: "system", content: projectContext(request.project) },
+        { role: "user", content: request.prompt },
+      ],
+    );
     this.worker.postMessage({
       type: "generate",
-      messages: [
-        { role: "system", content: projectContext(r.project) },
-        { role: "user", content: r.prompt },
-      ],
+      messages,
+      maxNewTokens: request.maxNewTokens ?? 384,
     });
     try {
       while (true) {
@@ -80,14 +97,15 @@ export class BrowserAIProvider implements AIProvider {
           });
         const event = queue.shift();
         if (!event) continue;
-        if (event.type === "chunk") yield { text: event.text ?? "" };
+        if (event.type === "chunk" && !cancelled)
+          yield { text: event.text ?? "" };
         if (event.type === "done") break;
         if (event.type === "error") throw new Error(event.message);
       }
     } finally {
       this.worker.removeEventListener("message", receive);
       this.worker.removeEventListener("error", fail);
-      r.signal?.removeEventListener("abort", abort);
+      request.signal?.removeEventListener("abort", abort);
     }
   }
   dispose() {

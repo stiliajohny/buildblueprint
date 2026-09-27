@@ -34,6 +34,7 @@ const icons = [
   ShieldCheck,
   ClipboardCheck,
 ];
+/** Category list with a progress rail that fills as the builder advances. */
 export function BuilderSidebar({
   onNavigate,
   onReset,
@@ -42,6 +43,7 @@ export function BuilderSidebar({
   onReset: () => void;
 }) {
   const { currentStep, setStep, project } = useBuilder();
+  const activeIndex = steps.findIndex(([id]) => id === currentStep);
   return (
     <>
       <div className="sidebar-intro">
@@ -55,6 +57,8 @@ export function BuilderSidebar({
           const count = project.selectedTechnologies.filter((t) =>
             stepCategories[id]?.includes(byId[t]?.category),
           ).length;
+          const reached = i <= activeIndex;
+          const passed = i < activeIndex;
           return (
             <button
               key={id}
@@ -65,8 +69,19 @@ export function BuilderSidebar({
                 onNavigate?.();
               }}
             >
+              <span className="step-rail" aria-hidden="true">
+                <span
+                  className={`step-rail-line before ${i > 0 && reached ? "filled" : ""}`}
+                />
+                <span
+                  className={`step-rail-dot ${passed ? "done" : ""} ${i === activeIndex ? "current" : ""}`}
+                />
+                <span
+                  className={`step-rail-line after ${passed ? "filled" : ""}`}
+                />
+              </span>
               <Icon size={17} />
-              <span>
+              <span className="step-copy">
                 <strong>{label}</strong>
                 <small>{description}</small>
               </span>

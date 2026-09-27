@@ -2,31 +2,47 @@ import {
   pipeline,
   TextStreamer,
   env,
+  InterruptableStoppingCriteria,
   type TextGenerationPipeline,
 } from "@huggingface/transformers";
 import { models } from "./models";
+
 env.allowLocalModels = false;
 env.useBrowserCache = true;
+
+type Incoming = {
+  type: "load" | "generate" | "cancel";
+  model?: string;
+  messages?: { role: string; content: string }[];
+  maxNewTokens?: number;
+};
+
 let generator: TextGenerationPipeline | null = null;
+let stopping: InterruptableStoppingCriteria | null = null;
 let busy = false;
-self.onmessage = async (
-  event: MessageEvent<{
-    type: "load" | "generate";
-    model?: string;
-    messages?: { role: string; content: string }[];
-  }>,
-) => {
+
+self.onmessage = (event: MessageEvent<Incoming>) => {
+  if (event.data.type === "cancel") {
+    stopping?.interrupt();
+    return;
+  }
   if (busy) {
     self.postMessage({ type: "error", message: "Worker is busy" });
     return;
   }
+  void run(event.data);
+};
+
+/** Loads a consented model or streams a local completion. Prompts never leave this worker. */
+async function run(data: Incoming) {
   busy = true;
   try {
-    if (event.data.type === "load") {
-      const model = models.find((m) => m.id === event.data.model);
+    if (data.type === "load") {
+      const model = models.find((item) => item.id === data.model);
       if (!model) throw new Error("Unknown model");
       if (generator) await generator.dispose();
       generator = await pipeline("text-generation", model.id, {
+        revision: model.revision,
         device: "webgpu",
         dtype: model.dtype,
         progress_callback: (progress) => {
@@ -39,27 +55,36 @@ self.onmessage = async (
         },
       });
       self.postMessage({ type: "ready" });
-    } else {
-      if (!generator) throw new Error("Load a model first");
-      const streamer = new TextStreamer(generator.tokenizer, {
-        skip_prompt: true,
-        skip_special_tokens: true,
-        callback_function: (text) => self.postMessage({ type: "chunk", text }),
-      });
-      await generator(event.data.messages ?? [], {
-        max_new_tokens: 384,
-        do_sample: false,
-        repetition_penalty: 1.05,
-        streamer,
-      });
-      self.postMessage({ type: "done" });
+      return;
     }
-  } catch (error) {
-    self.postMessage({
-      type: "error",
-      message: error instanceof Error ? error.message : "Browser model failed",
+    if (!generator) throw new Error("Load a model first");
+    stopping = new InterruptableStoppingCriteria();
+    const streamer = new TextStreamer(generator.tokenizer, {
+      skip_prompt: true,
+      skip_special_tokens: true,
+      callback_function: (text) => self.postMessage({ type: "chunk", text }),
     });
+    const maxNewTokens = Math.min(1024, Math.max(32, data.maxNewTokens ?? 384));
+    await generator(data.messages ?? [], {
+      max_new_tokens: maxNewTokens,
+      do_sample: false,
+      repetition_penalty: 1.05,
+      streamer,
+      stopping_criteria: stopping,
+    });
+    self.postMessage({ type: "done" });
+  } catch (error) {
+    if (stopping?.interrupted) {
+      self.postMessage({ type: "done" });
+    } else {
+      self.postMessage({
+        type: "error",
+        message:
+          error instanceof Error ? error.message : "Browser model failed",
+      });
+    }
   } finally {
     busy = false;
+    stopping = null;
   }
-};
+}

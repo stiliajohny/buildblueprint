@@ -35,13 +35,13 @@ For a managed development runner, `scripts/dev.mjs` accepts `--host`, `--port` a
 - Canonical STACK.yaml with project, clients, services, libraries, security and deployment choices.
 - Markdown rules and prompts, IDE instructions and conditional infrastructure starting templates.
 - Supabase authentication, private project CRUD, RLS policies and persistent cloud AI quotas.
-- OpenAI and DeepSeek server streaming; loopback-only Ollama client; consent-gated Transformers.js WebGPU worker.
+- OpenAI and DeepSeek server streaming; loopback-only Ollama client; consent-gated Transformers.js WebGPU worker with local chat.
 
 ## Configure account persistence
 
 1. Create/select a Supabase project.
 2. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-3. Apply `supabase/schema.sql` once to a fresh project. Existing databases should receive a reviewed migration, not a blind re-run.
+3. Apply the SQL migration in `supabase/migrations` once to the hosted project. Existing databases should receive a reviewed migration, not a blind re-run.
 4. Add `http://localhost:3000/auth/callback` and your deployed origin's `/auth/callback` to Supabase redirect URLs. Set the Site URL to the deployed origin.
 5. Enable the desired OAuth providers: Google, Apple, Facebook and LinkedIn OIDC, with their own credentials.
 6. Configure Twilio in Supabase for SMS OTP. For email OTP, use an email template containing `{{ .Token }}`; magic links use `{{ .ConfirmationURL }}`. A template may include both.
@@ -54,7 +54,7 @@ The browser uses only the publishable key. API routes validate the user with Sup
 - **OpenAI:** Set `OPENAI_API_KEY` and optionally `OPENAI_MODEL` server-side.
 - **DeepSeek:** Set `DEEPSEEK_API_KEY` and optionally `DEEPSEEK_MODEL` server-side.
 - **Cloud requests:** Require authenticated users and the `consume_ai_quota` RPC. Maximum 20 requests/hour/user and 800 output tokens/request. Provisioning these keys is not required for the rest of the builder.
-- **Browser AI:** HTTPS or localhost, WebGPU adapter, sufficient storage/memory and explicit licence/download consent are required. Models are fetched directly from Hugging Face. Inference and prompts stay in the worker; no fallback silently sends them to cloud APIs. Browser caching is best effort and may be evicted.
+- **Browser AI:** HTTPS or localhost, WebGPU adapter, sufficient storage/memory and explicit licence/download consent are required. The first visit asks, via the `bb-browser-llm` cookie, whether to pull a local model. Declining or accepting is remembered for 180 days and never starts a download by itself. Models are fetched directly from Hugging Face. The side-panel Chat window discusses the current choices. On the review step, notes can be sent into that chat; a reply replaces the exported master prompt only after Use as master prompt. Inference stays in the worker; no fallback silently sends it to cloud APIs. Browser caching is best effort and may be evicted.
 - **Ollama:** Install the selected model locally and set `OLLAMA_ORIGINS` to the exact application origin. Keep the server on loopback. Browser mixed-content and private-network restrictions may require local development or browser support. Never expose an unauthenticated Ollama endpoint publicly.
 
 Small browser models can produce poor architectural advice. Compatibility and recommendations remain deterministic. Tests mock the worker and never download weights.

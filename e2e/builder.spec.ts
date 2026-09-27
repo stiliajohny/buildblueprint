@@ -188,10 +188,12 @@ test("browser AI uses a mock worker and requires download consent", async ({
     .click();
   await expect(page.getByRole("status")).toHaveText("Local AI ready");
   await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Ask Blueprint AI", exact: true })
-    .click();
-  await expect(page.locator(".ai-response")).toContainText("PostgreSQL");
+    .getByRole("textbox", { name: "Message the browser model", exact: true })
+    .fill("Why is this stack a good fit?");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.locator(".llm-bubble.assistant")).toContainText(
+    "PostgreSQL",
+  );
   expect(modelRequests).toBe(0);
 });
 test("API validates public generation and refuses cross-origin writes", async ({

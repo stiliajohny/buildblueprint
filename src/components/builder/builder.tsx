@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -8,12 +8,12 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
+  MessageSquare,
   SlidersHorizontal,
   Check,
   Download,
   Save,
   Upload,
-  Blocks,
 } from "lucide-react";
 import { useBuilder } from "@/stores/builder-store";
 import { catalogue, byId } from "@/catalogue";
@@ -32,14 +32,27 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Modal } from "@/components/ui/dialog";
 import { BuilderSidebar } from "./builder-sidebar";
-import { ProjectSummary } from "./project-summary";
+import { SummaryPane } from "./summary-pane";
+import {
+  SUMMARY_DEFAULT,
+  SummaryResize,
+  clampSummaryWidth,
+} from "./summary-resize";
 import { TechnologyCard } from "./technology-card";
 import { TechnologyDetails } from "./technology-details";
 import { ProjectForm } from "./project-form";
 import { GeneratedFiles } from "./generated-files";
 import { BrowserAIPanel } from "@/components/browser-ai/browser-ai-panel";
+import { BrowserLlmOffer } from "@/components/browser-ai/browser-llm-offer";
+import { PromptRefiner } from "@/components/browser-ai/prompt-refiner";
+import { browserLlm } from "@/lib/browser-ai/session";
+import { ThemeSwitch } from "@/components/theme-switch";
 import { saveProject } from "@/features/project/service";
-export function Builder() {
+export function Builder({
+  askBrowserLlm = false,
+}: {
+  askBrowserLlm?: boolean;
+}) {
   const {
     project: p,
     currentStep,
@@ -58,11 +71,21 @@ export function Builder() {
   const [filter, setFilter] = useState("all");
   const [detail, setDetail] = useState<Technology | null>(null);
   const [ai, setAI] = useState(false);
+  const [pane, setPane] = useState<"project" | "chat">("project");
+  const [chatSeed, setChatSeed] = useState<{
+    id: number;
+    text: string;
+  } | null>(null);
+  const [narrow, setNarrow] = useState(false);
+  const [summaryWidth, setSummaryWidth] = useState(SUMMARY_DEFAULT);
+  const seedId = useRef(0);
+  const [llmOffer, setLlmOffer] = useState(false);
   const [preview, setPreview] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [notice, setNotice] = useState("");
   const [highlight, setHighlight] = useState("");
   const [busy, setBusy] = useState(false);
+  useEffect(() => () => browserLlm.reset(), []);
   useEffect(() => {
     setReady(true);
     const onKey = (e: KeyboardEvent) => {
@@ -82,6 +105,29 @@ export function Builder() {
   useEffect(() => {
     setFilter("all");
   }, [currentStep]);
+  useEffect(() => {
+    if (currentStep === "review") setPane("chat");
+  }, [currentStep]);
+  useEffect(() => {
+    const saved = Number(localStorage.getItem("bb-summary-width"));
+    if (Number.isFinite(saved))
+      setSummaryWidth(clampSummaryWidth(saved, window.innerWidth));
+  }, []);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1279px)");
+    const sync = () => setNarrow(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+  function openChat(text?: string) {
+    if (text) {
+      seedId.current += 1;
+      setChatSeed({ id: seedId.current, text });
+    }
+    setPane("chat");
+    if (window.matchMedia("(max-width: 1279px)").matches) setSummary(true);
+  }
   const activeIndex = Math.max(
     0,
     steps.findIndex((s) => s[0] === currentStep),
@@ -108,8 +154,13 @@ export function Builder() {
       .catch(() =>
         setNotice("Clipboard unavailable; download the project pack instead."),
       );
-  const summaryProps = {
-    onAI: () => {
+  const paneProps = {
+    pane,
+    project: p,
+    seed: chatSeed,
+    onPane: setPane,
+    onChat: () => openChat(),
+    onCloud: () => {
       setSummary(false);
       setAI(true);
     },
@@ -144,9 +195,13 @@ export function Builder() {
           <Menu size={18} />
         </button>
         <Link href="/builder" className="brand">
-          <span className="brand-icon">
-            <Blocks size={17} />
-          </span>
+          <img
+            className="brand-mark"
+            src="/brand-mark.png"
+            width={25}
+            height={25}
+            alt=""
+          />
           BuildBlueprint<span className="brand-dot">.app</span>
         </Link>
         <div className="header-divider" />
@@ -165,6 +220,15 @@ export function Builder() {
           <span>Search technologies</span>
           <kbd>⌘ K</kbd>
         </button>
+        <ThemeSwitch />
+        <button
+          className="icon-button"
+          aria-label="Open chat"
+          aria-pressed={pane === "chat"}
+          onClick={() => openChat()}
+        >
+          <MessageSquare size={18} />
+        </button>
         <Link href="/auth" className="sign-in">
           Sign in
         </Link>
@@ -176,11 +240,23 @@ export function Builder() {
           <PanelRight size={18} />
         </button>
       </header>
-      <div className="builder-grid">
+      <div
+        className="builder-grid"
+        style={
+          {
+            "--bb-summary-width": `${summaryWidth}px`,
+          } as CSSProperties
+        }
+      >
         <aside className="desktop-sidebar">
           <BuilderSidebar onReset={() => setResetting(true)} />
         </aside>
         <main className="builder-main">
+          <BrowserLlmOffer
+            ask={askBrowserLlm}
+            open={llmOffer}
+            onOpenChange={setLlmOffer}
+          />
           <div className="breadcrumb">
             Workspace <ChevronRight size={12} /> {p.projectName}{" "}
             <ChevronRight size={12} />
@@ -395,6 +471,7 @@ export function Builder() {
           )}
           {currentStep === "review" && (
             <>
+              <PromptRefiner onDiscuss={(message) => openChat(message)} />
               <div className="review-actions">
                 <Button onClick={save} disabled={busy}>
                   <Save size={14} />
@@ -478,8 +555,21 @@ export function Builder() {
             </Button>
           </footer>
         </main>
-        <aside className="desktop-summary">
-          <ProjectSummary {...summaryProps} />
+        <aside
+          className={`desktop-summary${pane === "chat" ? " is-chat" : ""}`}
+        >
+          {!narrow && (
+            <>
+              <SummaryResize
+                width={summaryWidth}
+                onWidth={(next) => {
+                  setSummaryWidth(next);
+                  localStorage.setItem("bb-summary-width", String(next));
+                }}
+              />
+              <SummaryPane {...paneProps} live />
+            </>
+          )}
         </aside>
       </div>
       <Modal title="Builder navigation" open={nav} onOpenChange={setNav} sheet>
@@ -492,12 +582,12 @@ export function Builder() {
         />
       </Modal>
       <Modal
-        title="Project summary"
+        title={pane === "chat" ? "Chat" : "Project summary"}
         open={summary}
         onOpenChange={setSummary}
         sheet
       >
-        <ProjectSummary {...summaryProps} />
+        {narrow && <SummaryPane {...paneProps} live={summary} />}
       </Modal>
       <Modal title="Search technologies" open={search} onOpenChange={setSearch}>
         <div className="search-box">

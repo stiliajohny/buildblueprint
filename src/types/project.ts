@@ -46,6 +46,7 @@ export const projectSchema = z.object({
       ]),
     )
     .max(7),
+  refinedPrompt: z.string().max(20000).default(""),
 });
 export type Project = z.infer<typeof projectSchema>;
 export const defaultProject: Project = {
@@ -74,4 +75,5 @@ export const defaultProject: Project = {
   requirements: ["accounts", "managed"],
   deploymentProfile: "managed",
   security: ["rls", "validation", "secrets", "rate-limiting", "backups"],
+  refinedPrompt: "",
 };

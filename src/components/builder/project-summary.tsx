@@ -15,12 +15,12 @@ import { generateFiles } from "@/features/generator";
 import { useBuilder } from "@/stores/builder-store";
 import { Button } from "@/components/ui/button";
 export function ProjectSummary({
-  onAI,
+  onChat,
   onPreview,
   onDownload,
   onCopy,
 }: {
-  onAI: () => void;
+  onChat: () => void;
   onPreview: () => void;
   onDownload: () => void;
   onCopy: () => void;
@@ -124,8 +124,8 @@ export function ProjectSummary({
           <strong>Blueprint AI</strong>
           <span className="pill">Optional</span>
         </div>
-        <p>Explore your architecture with AI.</p>
-        <button onClick={onAI}>
+        <p>Talk through these choices, then revise the master prompt.</p>
+        <button onClick={onChat}>
           Ask Blueprint AI <ChevronRight size={14} />
         </button>
       </div>

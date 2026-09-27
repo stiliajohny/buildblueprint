@@ -1,5 +1,5 @@
 import { PGlite } from "@electric-sql/pglite";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 let db: PGlite;
 const alice = "11111111-1111-4111-8111-111111111111";
@@ -9,7 +9,12 @@ beforeAll(async () => {
   await db.exec(
     `create role anon; create role authenticated; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated; insert into auth.users values ('${alice}'),('${bob}');`,
   );
-  await db.exec(await readFile("supabase/schema.sql", "utf8"));
+  const migrations = (await readdir("supabase/migrations"))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  for (const name of migrations) {
+    await db.exec(await readFile(`supabase/migrations/${name}`, "utf8"));
+  }
 }, 30000);
 afterAll(async () => {
   await db.close();
