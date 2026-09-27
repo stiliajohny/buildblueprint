@@ -1,4 +1,15 @@
 # BuildBlueprint Engineering Rules
+
+Before changing code, read the doc that matches the work:
+
+- Security, auth, secrets, or AI boundaries: `docs/SECURITY.md`, `docs/THREAT_MODEL.md`, and `docs/SECURITY_ARCHITECTURE.md`
+- Tables, policies, or migrations: `docs/DATABASE.md` and `docs/SECURITY.md`
+- Routes or request handling: `docs/API.md` and `docs/SECURITY.md`
+- UI or TypeScript: `docs/CODE_STYLE.md`
+- A production release: `docs/SECURITY_CHECKLIST.md`
+
+Follow the code when a doc disagrees with it, and update the doc in the same change. Do not add a feature only to satisfy a control marked out of scope.
+
 Use strict TypeScript and Next.js App Router. Prefer Server Components, with client boundaries for state and browser APIs. Keep catalogue data, compatibility, recommendations and generation separate from React. Validate external input with Zod. Never access database tables directly from UI components.
 Use Base UI primitives, shadcn-style components, Tailwind tokens and Lucide. Maintain the supplied dense light developer-tool design: no gradients or large shadows; header 46px, sidebar 274px, summary 356px. Cards have 8px radius and at least 74px height.
 Cloud AI secrets stay server-side. Browser AI runs only in a Worker and never sends prompts to application APIs. Never download model weights automatically: expose size and licence and obtain explicit consent.
