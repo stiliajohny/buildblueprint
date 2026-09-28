@@ -1,23 +1,31 @@
 import { generateFiles } from "@/features/generator";
 import { projectContext } from "@/lib/ai/context";
 import {
-    browserLlmCookie,
-    parseBrowserLlmChoice,
+  browserLlmCookie,
+  parseBrowserLlmChoice,
 } from "@/lib/browser-ai/consent";
 import { models } from "@/lib/browser-ai/models";
+import {
+  readAiPanelPreferences,
+  readBrowserModelId,
+  skipBrowserModelAutoLoad,
+  takeBrowserModelAutoLoad,
+  writeAiPanelPreferences,
+  writeBrowserModelId,
+} from "@/lib/browser-ai/preferences";
 import { sanitizeMessages } from "@/lib/browser-ai/provider";
 import {
-    currentMasterPrompt,
-    emptyEnhancementAnswers,
-    extractRefinedPrompt,
-    promptDiscussion,
-    refineMaxNewTokens,
-    refineMessages,
-    refineSystemPrompt,
-    wantsPromptRefine,
+  currentMasterPrompt,
+  emptyEnhancementAnswers,
+  extractRefinedPrompt,
+  promptDiscussion,
+  refineMaxNewTokens,
+  refineMessages,
+  refineSystemPrompt,
+  wantsPromptRefine,
 } from "@/lib/browser-ai/refine";
 import { defaultProject, projectSchema } from "@/types/project";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 describe("browser model consent", () => {
   it("asks again until the cookie stores a real choice", () => {
@@ -45,6 +53,56 @@ describe("browser model consent", () => {
       expect(model.licence.name.length).toBeGreaterThan(0);
       expect(model.licence.url).toMatch(/^https:\/\//);
     }
+  });
+
+  it("remembers the selected browser model in localStorage", () => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        storage.set(key, value);
+      },
+      removeItem: (key: string) => {
+        storage.delete(key);
+      },
+    });
+    expect(readBrowserModelId()).toBe(models[0].id);
+    writeBrowserModelId(models[1].id);
+    expect(readBrowserModelId()).toBe(models[1].id);
+    writeBrowserModelId("not-a-real-model");
+    expect(readBrowserModelId()).toBe(models[1].id);
+    vi.unstubAllGlobals();
+  });
+
+  it("remembers cloud and Ollama panel choices in localStorage", () => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        storage.set(key, value);
+      },
+      removeItem: (key: string) => {
+        storage.delete(key);
+      },
+    });
+    writeAiPanelPreferences({
+      provider: "ollama",
+      endpoint: "http://127.0.0.1:11434",
+      ollamaModel: "mistral",
+    });
+    expect(readAiPanelPreferences()).toEqual({
+      provider: "ollama",
+      endpoint: "http://127.0.0.1:11434",
+      ollamaModel: "mistral",
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it("only auto-loads a cached browser model once per page visit", () => {
+    expect(takeBrowserModelAutoLoad()).toBe(true);
+    expect(takeBrowserModelAutoLoad()).toBe(false);
+    skipBrowserModelAutoLoad();
+    expect(takeBrowserModelAutoLoad()).toBe(false);
   });
 });
 

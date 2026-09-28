@@ -8,6 +8,11 @@ import {
   DeepSeekProvider,
   OllamaProvider,
 } from "@/lib/ai/providers";
+import {
+  readAiPanelPreferences,
+  writeAiPanelPreferences,
+  type AiPanelProvider,
+} from "@/lib/browser-ai/preferences";
 import type { Project } from "@/types/project";
 
 export function BrowserAIPanel({
@@ -19,7 +24,7 @@ export function BrowserAIPanel({
   onOpenChange: (open: boolean) => void;
   project: Project;
 }) {
-  const [provider, setProvider] = useState("openai");
+  const [provider, setProvider] = useState<AiPanelProvider>("openai");
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState("");
   const [prompt, setPrompt] = useState(
@@ -31,12 +36,31 @@ export function BrowserAIPanel({
   const [busy, setBusy] = useState(false);
   const controller = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    const saved = readAiPanelPreferences();
+    setProvider(saved.provider);
+    setEndpoint(saved.endpoint);
+    setOllamaModel(saved.ollamaModel);
+  }, []);
+
   useEffect(
     () => () => {
       controller.current?.abort();
     },
     [],
   );
+
+  function persistPanel(next: {
+    provider?: AiPanelProvider;
+    endpoint?: string;
+    ollamaModel?: string;
+  }) {
+    writeAiPanelPreferences({
+      provider: next.provider ?? provider,
+      endpoint: next.endpoint ?? endpoint,
+      ollamaModel: next.ollamaModel ?? ollamaModel,
+    });
+  }
 
   async function ask() {
     setBusy(true);
@@ -74,7 +98,9 @@ export function BrowserAIPanel({
             disabled={busy}
             value={provider}
             onChange={(event) => {
-              setProvider(event.target.value);
+              const next = event.target.value as AiPanelProvider;
+              setProvider(next);
+              persistPanel({ provider: next });
               setConsent(false);
               setResponse("");
               setStatus("");
@@ -91,14 +117,22 @@ export function BrowserAIPanel({
               Local endpoint
               <input
                 value={endpoint}
-                onChange={(event) => setEndpoint(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setEndpoint(next);
+                  persistPanel({ endpoint: next });
+                }}
               />
             </label>
             <label>
               Installed model
               <input
                 value={ollamaModel}
-                onChange={(event) => setOllamaModel(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setOllamaModel(next);
+                  persistPanel({ ollamaModel: next });
+                }}
               />
             </label>
             <p className="muted">

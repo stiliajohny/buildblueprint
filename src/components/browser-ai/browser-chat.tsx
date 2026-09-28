@@ -3,25 +3,26 @@ import { Button } from "@/components/ui/button";
 import { projectContext } from "@/lib/ai/context";
 import { writeBrowserLlmChoice } from "@/lib/browser-ai/consent";
 import { models } from "@/lib/browser-ai/models";
+import { skipBrowserModelAutoLoad } from "@/lib/browser-ai/preferences";
 import {
-    currentMasterPrompt,
-    emptyEnhancementAnswers,
-    extractRefinedPrompt,
-    promptDiscussion,
-    refineMaxNewTokens,
-    refineMessages,
-    refineSystemPrompt,
-    wantsPromptRefine,
-    type ChatSeed,
-    type EnhancementAnswers,
+  currentMasterPrompt,
+  emptyEnhancementAnswers,
+  extractRefinedPrompt,
+  promptDiscussion,
+  refineMaxNewTokens,
+  refineMessages,
+  refineSystemPrompt,
+  wantsPromptRefine,
+  type ChatSeed,
+  type EnhancementAnswers,
 } from "@/lib/browser-ai/refine";
 import { browserLlm } from "@/lib/browser-ai/session";
 import {
-    claimChatSeed,
-    getTranscript,
-    releaseChatSeed,
-    setTranscript,
-    useTranscript,
+  claimChatSeed,
+  getTranscript,
+  releaseChatSeed,
+  setTranscript,
+  useTranscript,
 } from "@/lib/browser-ai/transcript";
 import { useBuilder } from "@/stores/builder-store";
 import type { Project } from "@/types/project";
@@ -196,7 +197,10 @@ export function BrowserChat({
           <Button
             variant="ghost"
             disabled={busy}
-            onClick={() => browserLlm.reset()}
+            onClick={() => {
+              skipBrowserModelAutoLoad();
+              browserLlm.reset();
+            }}
           >
             Change model
           </Button>

@@ -3,7 +3,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { detectCapabilities } from "@/lib/browser-ai/capabilities";
+import { parseBrowserLlmChoice } from "@/lib/browser-ai/consent";
 import { models } from "@/lib/browser-ai/models";
+import {
+  readBrowserModelId,
+  skipBrowserModelAutoLoad,
+  takeBrowserModelAutoLoad,
+  writeBrowserModelId,
+} from "@/lib/browser-ai/preferences";
 import { browserLlm } from "@/lib/browser-ai/session";
 import { useBrowserLlm } from "./use-browser-llm";
 
@@ -23,11 +30,17 @@ export function ModelDownload({
     message: "Checking device capabilities…",
     freeBytes: undefined as number | undefined,
   });
+  const [prefsReady, setPrefsReady] = useState(false);
   const selected = models.find((item) => item.id === model) ?? models[0];
   const busy = llm.status === "downloading";
   const shortOnSpace =
     capability.freeBytes !== undefined &&
     capability.freeBytes < selected.sizeMB * 1024 * 1024;
+
+  useEffect(() => {
+    setModel(readBrowserModelId());
+    setPrefsReady(true);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -46,9 +59,27 @@ export function ModelDownload({
     );
   }, [enabled]);
 
-  async function load() {
+  useEffect(() => {
+    if (!enabled || !prefsReady) return;
+    if (llm.status !== "idle" && llm.status !== "error") return;
+    if (!capability.available || shortOnSpace) return;
+    if (parseBrowserLlmChoice(document.cookie) !== "accepted") return;
+    if (!takeBrowserModelAutoLoad()) return;
+    setConsent(true);
+    void loadModel(model);
+  }, [
+    enabled,
+    prefsReady,
+    capability.available,
+    shortOnSpace,
+    llm.status,
+    model,
+  ]);
+
+  async function loadModel(modelId: string) {
+    writeBrowserModelId(modelId);
     try {
-      await browserLlm.load(model);
+      await browserLlm.load(modelId);
       onReady?.();
     } catch {
       setConsent(false);
@@ -78,8 +109,11 @@ export function ModelDownload({
           disabled={busy}
           value={model}
           onChange={(event) => {
-            setModel(event.target.value);
+            const next = event.target.value;
+            setModel(next);
+            writeBrowserModelId(next);
             setConsent(false);
+            skipBrowserModelAutoLoad();
           }}
         >
           {models.map((item) => (
@@ -109,7 +143,10 @@ export function ModelDownload({
       <Button
         variant="primary"
         disabled={busy || !consent || !capability.available || shortOnSpace}
-        onClick={() => void load()}
+        onClick={() => {
+          skipBrowserModelAutoLoad();
+          void loadModel(model);
+        }}
       >
         {busy ? "Loading…" : "Download and load model"}
       </Button>
