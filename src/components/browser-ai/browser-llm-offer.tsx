@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Modal } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { defaultBrowserModel } from "@/lib/browser-ai/models";
+import { Modal } from "@/components/ui/dialog";
 import {
-  parseBrowserLlmChoice,
-  writeBrowserLlmChoice,
+    parseBrowserLlmChoice,
+    writeBrowserLlmChoice,
 } from "@/lib/browser-ai/consent";
+import { defaultBrowserModel } from "@/lib/browser-ai/models";
+import { useEffect, useState } from "react";
 import { ModelDownload } from "./model-download";
 
 /** Asks once, from the landing cookie, before any model file is fetched. */
@@ -53,7 +53,7 @@ export function BrowserLlmOffer({
               <a href={model.licence.url} target="_blank" rel="noreferrer">
                 {model.licence.name}
               </a>
-              . Use it to chat about your stack and rewrite the master prompt
+              . Use it to chat about your stack and refine the master prompt
               from your answers. The download starts only after you agree.
             </p>
           </div>

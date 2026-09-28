@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.vitest/
 .env*
 !.env.example
 playwright-report/

@@ -2,17 +2,15 @@ import { test, expect, type Page } from "@playwright/test";
 import JSZip from "jszip";
 import { readFile } from "node:fs/promises";
 async function step(page: Page, label: string) {
-  if (
-    await page
-      .getByRole("button", { name: "Open navigation", exact: true })
-      .isVisible()
-  )
-    await page
-      .getByRole("button", { name: "Open navigation", exact: true })
-      .click();
+  await expect(page.locator(".builder-shell")).toBeVisible();
+  const open = page.getByRole("button", {
+    name: "Open navigation",
+    exact: true,
+  });
+  if (await open.isVisible()) await open.click();
   await page
+    .getByRole("navigation", { name: "Builder steps" })
     .getByRole("button", { name: new RegExp("^" + label) })
-    .first()
     .click();
 }
 test("complete selection, review and archive journey", async ({ page }) => {
@@ -31,7 +29,7 @@ test("complete selection, review and archive journey", async ({ page }) => {
     page.getByRole("checkbox", { name: "Select Supabase", exact: true }),
   ).toBeChecked();
   await step(page, "Authentication");
-  await page.getByRole("checkbox", { name: "apple", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Apple", exact: true }).click();
   await step(page, "Payments");
   await page
     .getByRole("checkbox", { name: "Select Stripe", exact: true })
@@ -63,6 +61,10 @@ test("complete selection, review and archive journey", async ({ page }) => {
     "clarity",
   );
   expect(zip.file("my-project/rules/security.md")).toBeTruthy();
+  expect(zip.file("my-project/docs/SECURITY.md")).toBeTruthy();
+  expect(zip.file("my-project/docs/API.md")).toBeTruthy();
+  expect(zip.file("my-project/docs/DATABASE.md")).toBeTruthy();
+  expect(zip.file("my-project/docs/CODE_STYLE.md")).toBeTruthy();
   await page.reload();
   await expect(page.locator(".file-content pre")).toContainText(
     "react-hook-form",
@@ -195,6 +197,47 @@ test("browser AI uses a mock worker and requires download consent", async ({
     "PostgreSQL",
   );
   expect(modelRequests).toBe(0);
+});
+test("themes, provider methods, and component examples", async ({ page }) => {
+  await page.goto("/builder");
+  await step(page, "Authentication");
+  await expect(
+    page.getByRole("checkbox", { name: "Facebook", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: "Select Supabase Auth", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: "Select WorkOS", exact: true })
+    .click();
+  await expect(
+    page.getByRole("checkbox", { name: "Enterprise SSO", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("checkbox", { name: "Facebook", exact: true }),
+  ).toHaveCount(0);
+  await step(page, "Libraries");
+  await page
+    .getByRole("button", { name: "shadcn/ui example", exact: true })
+    .click();
+  const example = page.getByRole("dialog");
+  await expect(
+    example.getByRole("heading", { name: "shadcn/ui", exact: true }),
+  ).toBeVisible();
+  await expect(example.getByText("Primary action")).toBeVisible();
+  await expect(page).toHaveURL(/\/builder/);
+  await example.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(example).toBeHidden();
+  await step(page, "Colours & themes");
+  await page.getByRole("radio", { name: "Single theme", exact: true }).click();
+  await page.getByRole("radio", { name: "Dark", exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: "Dark", exact: true }),
+  ).toBeChecked();
+  await page.getByRole("button", { name: "Synthetic Lime" }).click();
+  await expect(
+    page.getByRole("button", { name: "Synthetic Lime" }),
+  ).toHaveAttribute("aria-pressed", "true");
 });
 test("API validates public generation and refuses cross-origin writes", async ({
   request,

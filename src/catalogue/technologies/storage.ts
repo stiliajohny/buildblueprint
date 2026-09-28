@@ -24,6 +24,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "s3",
+    logo: "/logos/s3.svg",
     name: "Amazon S3",
     slug: "s3",
     category: "storage",

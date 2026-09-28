@@ -19,7 +19,7 @@ Supabase Auth issues the session. The app does not store password hashes.
 - `localStorage` may hold the builder draft (`buildblueprint-project`), theme preference, and summary width. Those values are not credentials. Reload them through `projectSchema`.
 - Post-login redirects go through `safeNextPath`. Only `/builder`, `/projects`, `/projects/...`, and `/auth/update-password` are allowed.
 - The password reset screen tells the user to use at least 8 characters. Length and breached-password checks belong in the Supabase Auth password policy, not in a custom table.
-- There is no admin role and no step-up MFA in the app. Phone OTP is a sign-in method when Twilio is configured in Supabase.
+- There is no admin role and no step-up MFA in the app. Sign-in is email and password, an email link, or an email code.
 
 ## Authorization
 
@@ -34,7 +34,7 @@ Tenant isolation is one user, many projects. `public.projects.user_id` reference
 
 - Validate request bodies and ids with Zod. Reject invalid payloads with HTTP 400.
 - Read JSON through `boundedJson` (64 KB). Oversized bodies are rejected.
-- State-changing routes call `validOrigin`. The `Origin` header must be absent or match the request origin.
+- State-changing routes call `validOrigin`. The `Origin` header must be absent, or match the request URL origin or the `Host` the client used. The process bind address is not that host.
 - Use the Supabase client filters. Do not build SQL by concatenating request strings.
 - User-facing JSON errors are `{ "error": "short message" }`. Do not return stack traces, SQL, keys, or file paths.
 
@@ -94,4 +94,4 @@ These controls are in generic kits and are not part of this product. Do not add 
 
 ## Before public launch
 
-Configure in Supabase, not in a new password table: production SMTP, email confirmation, auth rate limits, bot protection, and the password policy. Confirm OAuth and SMS only for providers that are enabled. The sign-in form’s social buttons are currently commented out.
+Configure in Supabase, not in a new password table: production SMTP, email confirmation, auth rate limits, bot protection, and the password policy. Confirm OAuth only for providers that are enabled. The sign-in form’s social buttons are currently commented out.

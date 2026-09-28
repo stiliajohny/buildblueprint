@@ -16,6 +16,7 @@ test("sign in, sign up, and password reset screens", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "Forgot password?" }),
   ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Phone code" })).toHaveCount(0);
   await page.getByRole("link", { name: "Create an account" }).click();
   await expect(
     page.getByRole("heading", { name: "Create account" }),

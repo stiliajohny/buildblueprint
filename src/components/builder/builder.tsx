@@ -1,55 +1,70 @@
 "use client";
-import { useState, useEffect, useRef, type CSSProperties } from "react";
-import Link from "next/link";
+import { catalogue } from "@/catalogue";
 import {
-  Search,
-  Menu,
-  PanelRight,
-  ChevronRight,
-  ChevronLeft,
-  Sparkles,
-  MessageSquare,
-  SlidersHorizontal,
-  Check,
-  Download,
-  Save,
-  Upload,
-} from "lucide-react";
-import { useBuilder } from "@/stores/builder-store";
-import { catalogue, byId } from "@/catalogue";
-import {
-  steps,
-  stepCategories,
-  categoryLabels,
-  stepFor,
+    categoryLabels,
+    stepCategories,
+    stepFor,
+    steps,
 } from "@/catalogue/categories";
-import { recommendations } from "@/features/recommendations";
-import { compatibility } from "@/features/compatibility";
-import { downloadPack, generateFiles } from "@/features/generator";
-import { projectSchema } from "@/types/project";
-import type { Technology } from "@/types/technology";
 import { AccountLink } from "@/components/account-link";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Modal } from "@/components/ui/dialog";
-import { BuilderSidebar } from "./builder-sidebar";
-import { SummaryPane } from "./summary-pane";
-import {
-  SUMMARY_DEFAULT,
-  SummaryResize,
-  clampSummaryWidth,
-} from "./summary-resize";
-import { TechnologyCard } from "./technology-card";
-import { TechnologyDetails } from "./technology-details";
-import { ProjectForm } from "./project-form";
-import { GeneratedFiles } from "./generated-files";
 import { BrowserAIPanel } from "@/components/browser-ai/browser-ai-panel";
 import { BrowserLlmOffer } from "@/components/browser-ai/browser-llm-offer";
 import { PromptRefiner } from "@/components/browser-ai/prompt-refiner";
-import { browserLlm } from "@/lib/browser-ai/session";
 import { HeaderNav } from "@/components/page-header";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/dialog";
+import { compatibility } from "@/features/compatibility";
+import { downloadPack, generateFiles } from "@/features/generator";
 import { saveProject } from "@/features/project/service";
+import { recommendations } from "@/features/recommendations";
+import {
+    promptDiscussion,
+    type ChatSeed,
+    type EnhancementAnswers,
+} from "@/lib/browser-ai/refine";
+import { browserLlm } from "@/lib/browser-ai/session";
+import { useBuilder } from "@/stores/builder-store";
+import { projectSchema } from "@/types/project";
+import type { Technology } from "@/types/technology";
+import {
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    Download,
+    Menu,
+    MessageSquare,
+    PanelRight,
+    Save,
+    Search,
+    SlidersHorizontal,
+    Sparkles,
+    Upload,
+} from "lucide-react";
+import Link from "next/link";
+import {
+    Fragment,
+    useEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+} from "react";
+import { AppearanceForm } from "./appearance-form";
+import { BuilderSidebar } from "./builder-sidebar";
+import { ProviderOptions, SecurityOptions } from "./checklists";
+import { GeneratedFiles } from "./generated-files";
+import { PipelineForm } from "./pipeline-form";
+import { ProjectForm } from "./project-form";
+import { PwaForm } from "./pwa-form";
+import { SummaryPane } from "./summary-pane";
+import {
+    SUMMARY_DEFAULT,
+    SummaryResize,
+    clampSummaryWidth,
+} from "./summary-resize";
+import { TechnologyCard } from "./technology-card";
+import { TechnologyDetails } from "./technology-details";
+import { UiStyleForm } from "./ui-style-form";
 export function Builder({
   askBrowserLlm = false,
 }: {
@@ -74,10 +89,7 @@ export function Builder({
   const [detail, setDetail] = useState<Technology | null>(null);
   const [ai, setAI] = useState(false);
   const [pane, setPane] = useState<"project" | "chat">("project");
-  const [chatSeed, setChatSeed] = useState<{
-    id: number;
-    text: string;
-  } | null>(null);
+  const [chatSeed, setChatSeed] = useState<ChatSeed | null>(null);
   const [narrow, setNarrow] = useState(false);
   const [summaryWidth, setSummaryWidth] = useState(SUMMARY_DEFAULT);
   const seedId = useRef(0);
@@ -128,8 +140,20 @@ export function Builder({
   function openChat(text?: string) {
     if (text) {
       seedId.current += 1;
-      setChatSeed({ id: seedId.current, text });
+      setChatSeed({ id: seedId.current, text, mode: "chat" });
     }
+    setPane("chat");
+    if (window.matchMedia("(max-width: 1279px)").matches) setSummary(true);
+  }
+  function openRefine(answers: EnhancementAnswers, systemPrompt: string) {
+    seedId.current += 1;
+    setChatSeed({
+      id: seedId.current,
+      text: promptDiscussion(answers),
+      mode: "refine",
+      answers,
+      systemPrompt,
+    });
     setPane("chat");
     if (window.matchMedia("(max-width: 1279px)").matches) setSummary(true);
   }
@@ -260,17 +284,8 @@ export function Builder({
             open={llmOffer}
             onOpenChange={setLlmOffer}
           />
-          <div className="breadcrumb">
-            Workspace <ChevronRight size={12} /> {p.projectName}{" "}
-            <ChevronRight size={12} />
-            <span>{step[1]}</span>
-          </div>
           <div className="page-heading">
-            <div>
-              <span className="eyebrow">BUILD YOUR BLUEPRINT</span>
-              <h1>{step[1]}</h1>
-              <p>{step[2]}. Choose the tools that fit your project.</p>
-            </div>
+            <h1>{step[1]}</h1>
             <div className="mode-switch" role="group" aria-label="Builder mode">
               {(["guided", "expert"] as const).map((mode) => (
                 <button
@@ -292,19 +307,6 @@ export function Builder({
               ))}
             </div>
           </div>
-          <div className="step-progress">
-            <span>
-              Step {activeIndex + 1} of {steps.length}
-            </span>
-            <div>
-              <i
-                style={{
-                  width: `${((activeIndex + 1) / steps.length) * 100}%`,
-                }}
-              />
-            </div>
-            <span>Saved on this device</span>
-          </div>
           {recommended.length > 0 && (
             <div className="recommendation">
               <Sparkles size={16} />
@@ -321,6 +323,9 @@ export function Builder({
             </div>
           )}
           {currentStep === "project" && <ProjectForm />}
+          {currentStep === "ui-style" && <UiStyleForm />}
+          {currentStep === "appearance" && <AppearanceForm />}
+          {currentStep === "automation" && <PipelineForm />}
           {cats.length > 0 && (
             <>
               <div className="category-toolbar">
@@ -359,122 +364,48 @@ export function Builder({
                       (filter === "self-hosted" && t.deployment.selfHosted)),
                 );
                 return (
-                  <section className="technology-section" key={category}>
-                    <div className="section-title">
-                      <h2>{categoryLabels[category]}</h2>
-                      <span>{items.length} options</span>
-                    </div>
-                    <div className="technology-grid">
-                      {items.map((t) => (
-                        <TechnologyCard
-                          key={t.id}
-                          technology={t}
-                          selected={p.selectedTechnologies.includes(t.id)}
-                          recommended={recommendedIds.includes(t.id)}
-                          onSelect={() => toggleTechnology(t.id)}
-                          onDetails={() => setDetail(t)}
-                          highlighted={highlight === t.id}
-                        />
-                      ))}
-                    </div>
-                    {items.length === 0 && (
-                      <p className="empty">
-                        No technologies match this filter.
-                      </p>
+                  <Fragment key={category}>
+                    <section className="technology-section">
+                      <div className="section-title">
+                        <h2>{categoryLabels[category]}</h2>
+                        <span>{items.length} options</span>
+                      </div>
+                      <div className="technology-grid">
+                        {items.map((t) => (
+                          <TechnologyCard
+                            key={t.id}
+                            technology={t}
+                            selected={p.selectedTechnologies.includes(t.id)}
+                            recommended={recommendedIds.includes(t.id)}
+                            onSelect={() => toggleTechnology(t.id)}
+                            onDetails={() => setDetail(t)}
+                            highlighted={highlight === t.id}
+                          />
+                        ))}
+                      </div>
+                      {items.length === 0 && (
+                        <p className="empty">
+                          No technologies match this filter.
+                        </p>
+                      )}
+                    </section>
+                    {currentStep === "frontend" && category === "frontend" && (
+                      <PwaForm />
                     )}
-                  </section>
+                  </Fragment>
                 );
               })}
             </>
           )}
-          {currentStep === "auth" && (
-            <section>
-              <h3 className="section-heading">Authentication methods</h3>
-              <div className="questions">
-                {(
-                  [
-                    "email",
-                    "magic-link",
-                    "email-otp",
-                    "phone",
-                    "google",
-                    "apple",
-                    "facebook",
-                    "linkedin",
-                  ] as const
-                ).map((method) => (
-                  <label key={method}>
-                    <Checkbox
-                      label={method}
-                      checked={p.selectedAuthMethods.includes(method)}
-                      onCheckedChange={(checked) =>
-                        update({
-                          selectedAuthMethods: checked
-                            ? [...p.selectedAuthMethods, method]
-                            : p.selectedAuthMethods.filter((m) => m !== method),
-                        })
-                      }
-                    />
-                    {method}
-                  </label>
-                ))}
-              </div>
-              <p className="muted">
-                Provider setup and supported methods must be verified during
-                implementation.
-              </p>
-            </section>
-          )}
-          {currentStep === "security" && (
-            <>
-              <h3 className="section-heading">Security requirements</h3>
-              <p className="muted">
-                Selected controls become explicit rules in your generated
-                project pack.
-              </p>
-              <div className="questions">
-                {(
-                  [
-                    "rls",
-                    "validation",
-                    "secrets",
-                    "rate-limiting",
-                    "backups",
-                    "audit",
-                    "csp",
-                  ] as const
-                ).map((control) => (
-                  <label key={control}>
-                    <Checkbox
-                      label={control}
-                      checked={p.security.includes(control)}
-                      onCheckedChange={(checked) =>
-                        update({
-                          security: checked
-                            ? [...p.security, control]
-                            : p.security.filter((c) => c !== control),
-                        })
-                      }
-                    />
-                    {
-                      {
-                        rls: "Row-level access control",
-                        validation: "Validate external input",
-                        secrets: "Server-side secret management",
-                        "rate-limiting": "API rate limits",
-                        backups: "Backups and restore tests",
-                        audit: "Audit logging",
-                        csp: "Content Security Policy",
-                      }[control]
-                    }
-                  </label>
-                ))}
-              </div>
-            </>
-          )}
+          {currentStep === "auth" && <ProviderOptions category="auth" />}
+          {currentStep === "ai" && <ProviderOptions category="ai" />}
+          {currentStep === "security" && <SecurityOptions />}
           {currentStep === "review" && (
             <>
-              <PromptRefiner onDiscuss={(message) => openChat(message)} />
+              <PromptRefiner
+                onRefine={openRefine}
+                onDiscuss={(message) => openChat(message)}
+              />
               <div className="review-actions">
                 <Button onClick={save} disabled={busy}>
                   <Save size={14} />

@@ -44,6 +44,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "neutralino",
+    logo: "/logos/neutralino.svg",
     name: "Neutralino",
     slug: "neutralino",
     category: "desktop",

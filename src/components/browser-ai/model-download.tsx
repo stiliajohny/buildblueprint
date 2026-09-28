@@ -102,7 +102,9 @@ export function ModelDownload({
           checked={consent}
           onCheckedChange={(checked) => setConsent(checked === true)}
         />
-        I agree to download this model under its licence.
+        <span aria-hidden="true">
+          I agree to download this model under its licence.
+        </span>
       </label>
       <Button
         variant="primary"

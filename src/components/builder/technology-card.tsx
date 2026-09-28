@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Info } from "lucide-react";
 import type { Technology } from "@/types/technology";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UiExample } from "@/components/builder/ui-example";
 export function TechnologyCard({
   technology: t,
   selected,
@@ -39,10 +40,13 @@ export function TechnologyCard({
         </button>
         {recommended && <span className="recommended">Recommended</span>}
         <p>{t.description}</p>
-        <div className="tech-meta">
-          {t.deployment.saas && <span>Managed</span>}
-          {t.deployment.selfHosted && <span>Self-hosted</span>}
-          {t.deployment.browser && <span>Browser</span>}
+        <div className="tech-foot">
+          <div className="tech-meta">
+            {t.deployment.saas && <span>Managed</span>}
+            {t.deployment.selfHosted && <span>Self-hosted</span>}
+            {t.deployment.browser && <span>Browser</span>}
+          </div>
+          {t.category === "ui" && <UiExample technology={t} />}
         </div>
       </div>
       <div className="card-actions">

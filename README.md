@@ -27,8 +27,8 @@ For a managed development runner, `scripts/dev.mjs` accepts `--host`, `--port` a
 
 ## Features
 
-- 13-step builder, Guided and Expert modes, desktop/sidebar layout and mobile sheets.
-- 129 catalogue entries covering all requested technology families; brand vectors from Simple Icons where available.
+- 16-step builder, Guided and Expert modes, desktop/sidebar layout and mobile sheets. UI style, colours, and themes are their own steps. Sign-in methods and AI capabilities follow the selected provider. A progressive web app can be configured on the frontend step after a web framework is selected. Automation is a pipeline of generic stages, and the master prompt turns those stages plus the selected tools into delivery instructions. Component libraries open a local example in a dialog.
+- 158 catalogue entries covering all requested technology families; brand vectors from Simple Icons where available.
 - Recursive dependency selection; warnings for overlapping identity providers, web frameworks and managed services in self-hosted profiles; React UI incompatibility checks.
 - Requirement-based recommendations, 11 presets and Cmd/Ctrl+K search.
 - Reactive project summary, file preview, master-prompt copying, ZIP download, JSON import/export and versioned local persistence.
@@ -44,7 +44,7 @@ For a managed development runner, `scripts/dev.mjs` accepts `--host`, `--port` a
 3. Apply the SQL migration in `supabase/migrations` once to the hosted project. Existing databases should receive a reviewed migration, not a blind re-run.
 4. Add `http://localhost:3000/auth/callback` and your deployed origin's `/auth/callback` to Supabase redirect URLs. Set the Site URL to the deployed origin. Password reset uses that same callback, then opens `/auth/update-password`.
 5. Enable the desired OAuth providers: Google, Apple, Facebook and LinkedIn OIDC, with their own credentials.
-6. Configure Twilio in Supabase for SMS OTP. For email OTP, use an email template containing `{{ .Token }}`; magic links use `{{ .ConfirmationURL }}`. A template may include both.
+6. For email OTP, use an email template containing `{{ .Token }}`; magic links use `{{ .ConfirmationURL }}`. A template may include both.
 7. Configure production SMTP, email confirmation, auth rate limits and bot protection before public launch.
 
 The browser uses only the publishable key. API routes validate the user with Supabase, constrain queries by owner and rely on RLS as a second boundary. A private schema contains the quota implementation; an authenticated invoker wrapper exposes only the caller's quota operation.

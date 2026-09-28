@@ -18,6 +18,7 @@ import { technologies as t16 } from "./technologies/search";
 import { technologies as t17 } from "./technologies/infrastructure";
 import { technologies as t18 } from "./technologies/deployment";
 import { technologies as t19 } from "./technologies/runtime";
+import { technologies as t20 } from "./technologies/automation";
 export const catalogue = [
   ...t0,
   ...t1,
@@ -39,5 +40,6 @@ export const catalogue = [
   ...t17,
   ...t18,
   ...t19,
+  ...t20,
 ];
 export const byId = Object.fromEntries(catalogue.map((t) => [t.id, t]));

@@ -1,24 +1,28 @@
 "use client";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  emptyEnhancementAnswers,
-  enhancementQuestions,
-  promptDiscussion,
-  type EnhancementAnswers,
+    emptyEnhancementAnswers,
+    enhancementQuestions,
+    promptDiscussion,
+    refineSystemPrompt,
+    type EnhancementAnswers,
 } from "@/lib/browser-ai/refine";
 import { useBuilder } from "@/stores/builder-store";
+import { useState } from "react";
 
-/** Review notes that open the chat so it can revise the master prompt. */
+/** Review notes and system prompt for rewriting the master prompt on-device. */
 export function PromptRefiner({
+  onRefine,
   onDiscuss,
 }: {
+  onRefine: (answers: EnhancementAnswers, systemPrompt: string) => void;
   onDiscuss: (message: string) => void;
 }) {
   const { project, update } = useBuilder();
   const [answers, setAnswers] = useState<EnhancementAnswers>(
     emptyEnhancementAnswers,
   );
+  const [systemPrompt, setSystemPrompt] = useState(refineSystemPrompt);
 
   function setAnswer(id: keyof EnhancementAnswers, value: string) {
     setAnswers((current) => ({ ...current, [id]: value }));
@@ -27,12 +31,23 @@ export function PromptRefiner({
   return (
     <section className="prompt-enhance" aria-labelledby="prompt-enhance-title">
       <div>
-        <h2 id="prompt-enhance-title">Enhance the master prompt</h2>
+        <h2 id="prompt-enhance-title">Refine the master prompt</h2>
         <p className="muted">
-          Add notes, then continue in the chat. A reply becomes the exported
-          prompt only after you choose Use as master prompt.
+          Put the generated master prompt on the browser model with a system
+          prompt. A reply becomes the exported prompt only after you choose
+          Refine the master prompt.
         </p>
       </div>
+      <label className="refine-system">
+        System prompt
+        <textarea
+          rows={4}
+          maxLength={2000}
+          value={systemPrompt}
+          aria-label="System prompt for refining the master prompt"
+          onChange={(event) => setSystemPrompt(event.target.value)}
+        />
+      </label>
       <div className="enhance-questions">
         {enhancementQuestions.map((question) => (
           <label key={question.id}>
@@ -47,12 +62,17 @@ export function PromptRefiner({
           </label>
         ))}
       </div>
-      <Button
-        variant="primary"
-        onClick={() => onDiscuss(promptDiscussion(answers))}
-      >
-        Discuss in chat
-      </Button>
+      <div className="refine-actions">
+        <Button
+          variant="primary"
+          onClick={() => onRefine(answers, systemPrompt)}
+        >
+          Refine with LLM
+        </Button>
+        <Button onClick={() => onDiscuss(promptDiscussion(answers))}>
+          Discuss in chat
+        </Button>
+      </div>
       {project.refinedPrompt && (
         <>
           <h3>Master prompt from chat</h3>

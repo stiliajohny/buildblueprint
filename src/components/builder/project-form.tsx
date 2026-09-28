@@ -3,26 +3,36 @@ import { useBuilder } from "@/stores/builder-store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { presets, fromPreset } from "@/features/project/presets";
 import { dependencies } from "@/features/compatibility";
-const questions = [
-  ["mobile", "Do you need mobile apps?", "expo"],
-  ["accounts", "Do users need accounts?", "supabase-auth"],
-  ["payments", "Do you need payments?", "stripe"],
-  ["ai", "Do you need AI?", "openai"],
-  ["managed", "Do you prefer managed services?", "vercel"],
-  ["realtime", "Do you expect realtime data?", "supabase"],
-  ["sensitive-data", "Will you handle sensitive data?", ""],
-  ["offline", "Do you need offline functionality?", ""],
-  [
-    "data-heavy-dashboard",
-    "Will you display large data tables?",
-    "tanstack-table",
-  ],
-  ["private-ai", "Should AI run locally?", "browser-ai"],
+import {
+  projectTypeLabels,
+  questionsFor,
+} from "@/features/project/requirements";
+import type { Project } from "@/types/project";
+
+const hosting = [
+  ["managed", "Managed services"],
+  ["self-hosted", "Self-hosted"],
+  ["hybrid", "Hybrid"],
 ] as const;
+
+/** Record managed hosting in requirements without dropping the other answers. */
+function withManagedFlag(
+  requirements: string[],
+  profile: Project["deploymentProfile"],
+) {
+  const rest = requirements.filter((id) => id !== "managed");
+  return profile === "managed" ? [...rest, "managed"] : rest;
+}
+
 export function ProjectForm() {
   const { project: p, update, load } = useBuilder();
+  const questions = questionsFor(p.projectType);
   return (
     <>
+      <p className="project-lead">
+        Name the product and how it is hosted. The questions match this project
+        type. Choose technologies on the following steps.
+      </p>
       <div className="form-grid">
         <label>
           Project name
@@ -38,16 +48,25 @@ export function ProjectForm() {
           Project type
           <select
             value={p.projectType}
-            onChange={(e) =>
-              update({ projectType: e.target.value as typeof p.projectType })
-            }
+            onChange={(e) => {
+              const projectType = e.target.value as Project["projectType"];
+              const allowed = new Set<string>(
+                questionsFor(projectType).map((question) => question.id),
+              );
+              update({
+                projectType,
+                requirements: withManagedFlag(
+                  p.requirements.filter((id) => allowed.has(id)),
+                  p.deploymentProfile,
+                ),
+              });
+            }}
           >
-            <option value="saas">SaaS application</option>
-            <option value="internal">Internal company tool</option>
-            <option value="ecommerce">E-commerce</option>
-            <option value="ai">AI application</option>
-            <option value="mobile">Mobile product</option>
-            <option value="website">Website</option>
+            {Object.entries(projectTypeLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
         </label>
         <label className="full">
@@ -61,64 +80,97 @@ export function ProjectForm() {
           />
         </label>
       </div>
-      <h3 className="section-heading">Project requirements</h3>
-      <p className="muted">
-        {p.mode === "guided"
-          ? "Answers add sensible defaults. Review your stack in Expert mode."
-          : "Record requirements to improve recommendations."}
-      </p>
-      <div className="questions">
-        {questions.map(([id, label, technology]) => (
-          <label key={id}>
-            <Checkbox
-              label={label}
-              checked={p.requirements.includes(id)}
-              onCheckedChange={(checked) =>
-                update({
-                  requirements: checked
-                    ? [...p.requirements, id]
-                    : p.requirements.filter((r) => r !== id),
-                  ...(checked && p.mode === "guided" && technology
-                    ? {
-                        selectedTechnologies: dependencies([
-                          ...p.selectedTechnologies,
-                          technology,
-                        ]),
-                      }
-                    : {}),
-                })
-              }
-            />
-            {label}
-          </label>
-        ))}
-        <label>
-          <Checkbox
-            label="Do you need to self-host?"
-            checked={p.deploymentProfile === "self-hosted"}
-            onCheckedChange={(checked) =>
-              update({ deploymentProfile: checked ? "self-hosted" : "managed" })
-            }
-          />
-          Do you need to self-host?
-        </label>
-      </div>
+      <section className="choice-panel">
+        <h3 className="section-heading">Hosting</h3>
+        <p className="muted">
+          Pick one. You can change this later in the summary.
+        </p>
+        <div className="hosting-choices" role="radiogroup" aria-label="Hosting">
+          {hosting.map(([value, label]) => (
+            <label key={value}>
+              <input
+                type="radio"
+                name="hosting"
+                value={value}
+                checked={p.deploymentProfile === value}
+                onChange={() =>
+                  update({
+                    deploymentProfile: value,
+                    requirements: withManagedFlag(p.requirements, value),
+                    ...(value === "managed" && p.mode === "guided"
+                      ? {
+                          selectedTechnologies: dependencies([
+                            ...p.selectedTechnologies,
+                            "vercel",
+                          ]),
+                        }
+                      : {}),
+                  })
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </section>
+      {questions.length > 0 && (
+        <section className="choice-panel">
+          <h3 className="section-heading">
+            {projectTypeLabels[p.projectType]} needs
+          </h3>
+          <p className="muted">
+            {p.mode === "guided"
+              ? "A checked answer adds a sensible default. Review it in Expert mode."
+              : "These answers improve recommendations for this project type."}
+          </p>
+          <div className="questions stacked">
+            {questions.map((question) => (
+              <label key={question.id}>
+                <Checkbox
+                  label={question.label}
+                  checked={p.requirements.includes(question.id)}
+                  onCheckedChange={(checked) =>
+                    update({
+                      requirements: checked
+                        ? [...p.requirements, question.id]
+                        : p.requirements.filter((id) => id !== question.id),
+                      ...(checked && p.mode === "guided" && question.technology
+                        ? {
+                            selectedTechnologies: dependencies([
+                              ...p.selectedTechnologies,
+                              question.technology,
+                            ]),
+                          }
+                        : {}),
+                    })
+                  }
+                />
+                <span aria-hidden="true">{question.label}</span>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
       <h3 className="section-heading">Start from a template</h3>
+      <p className="muted">
+        Optional. Replaces the selected technologies and keeps the name and
+        description.
+      </p>
       <div className="template-grid">
-        {presets.slice(0, 4).map((t) => (
+        {presets.slice(0, 4).map((template) => (
           <button
-            key={t.id}
+            key={template.id}
             onClick={() =>
               load({
-                ...fromPreset(t.id),
+                ...fromPreset(template.id),
                 projectName: p.projectName,
                 projectDescription: p.projectDescription,
                 mode: p.mode,
               })
             }
           >
-            <strong>{t.name}</strong>
-            <p>{t.description}</p>
+            <strong>{template.name}</strong>
+            <p>{template.description}</p>
           </button>
         ))}
       </div>

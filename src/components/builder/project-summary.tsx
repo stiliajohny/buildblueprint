@@ -10,6 +10,7 @@ import {
   Layers,
 } from "lucide-react";
 import { byId } from "@/catalogue";
+import { automationStages } from "@/catalogue/automation";
 import { compatibility } from "@/features/compatibility";
 import { generateFiles } from "@/features/generator";
 import { useBuilder } from "@/stores/builder-store";
@@ -32,6 +33,9 @@ export function ProjectSummary({
     ["ui", "frontend-library", "backend-library"].includes(t.category),
   );
   const core = selected.filter((t) => !libraries.includes(t));
+  const stageLabels = Object.fromEntries(
+    automationStages.map((stage) => [stage.id, stage.label]),
+  );
   return (
     <>
       <div className="summary-title">
@@ -105,6 +109,18 @@ export function ProjectSummary({
           <option value="hybrid">Hybrid</option>
         </select>
       </section>
+      {p.automationStages.length > 0 && (
+        <section>
+          <h3>
+            PIPELINE STAGES <span>{p.automationStages.length}</span>
+          </h3>
+          <div className="chips">
+            {p.automationStages.map((id) => (
+              <span key={id}>{stageLabels[id] ?? id}</span>
+            ))}
+          </div>
+        </section>
+      )}
       <section>
         <h3>
           GENERATED FILES <span>{Object.keys(generateFiles(p)).length}</span>
@@ -113,7 +129,7 @@ export function ProjectSummary({
           <FileText size={15} />
           <span>
             PROJECT.md, STACK.yaml, AGENTS.md
-            <small>Rules, prompts and IDE instructions</small>
+            <small>Security, data, and API docs, plus prompts</small>
           </span>
           <ChevronRight size={14} />
         </button>

@@ -23,6 +23,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "postmark",
+    logo: "/logos/postmark.svg",
     name: "Postmark",
     slug: "postmark",
     category: "email",
@@ -43,6 +44,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "sendgrid",
+    logo: "/logos/sendgrid.svg",
     name: "SendGrid",
     slug: "sendgrid",
     category: "email",
@@ -84,6 +86,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "ses",
+    logo: "/logos/ses.svg",
     name: "Amazon SES",
     slug: "ses",
     category: "email",

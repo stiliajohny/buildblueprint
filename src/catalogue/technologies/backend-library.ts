@@ -23,6 +23,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "valibot",
+    logo: "/logos/valibot.svg",
     name: "Valibot",
     slug: "valibot",
     category: "backend-library",
@@ -63,6 +64,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "arktype",
+    logo: "/logos/arktype.svg",
     name: "ArkType",
     slug: "arktype",
     category: "backend-library",

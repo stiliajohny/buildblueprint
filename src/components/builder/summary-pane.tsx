@@ -1,5 +1,6 @@
 "use client";
 import { BrowserChat } from "@/components/browser-ai/browser-chat";
+import type { ChatSeed } from "@/lib/browser-ai/refine";
 import type { Project } from "@/types/project";
 import { ProjectSummary } from "./project-summary";
 
@@ -19,7 +20,7 @@ export function SummaryPane({
   pane: "project" | "chat";
   live?: boolean;
   project: Project;
-  seed?: { id: number; text: string } | null;
+  seed?: ChatSeed | null;
   onPane: (pane: "project" | "chat") => void;
   onChat: () => void;
   onCloud: () => void;

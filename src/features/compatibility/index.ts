@@ -86,6 +86,26 @@ export function compatibility(p: Project): CompatibilityResult {
         "Deno is not the primary runtime for the selected web frameworks.",
       resolution: "Use npm, pnpm, Yarn, or Bun for this framework.",
     });
+  const ciHosts = selected.filter(
+    (t) => t.category === "ci" && t.id !== "dagger",
+  );
+  if (ciHosts.length > 1)
+    messages.push({
+      severity: "warning",
+      technologyIds: ciHosts.map((t) => t.id),
+      message: `${ciHosts.map((t) => t.name).join(" and ")} overlap as pipeline hosts.`,
+      resolution:
+        "Choose one CI host, or document why more than one runs the same stages.",
+    });
+  const gitops = selected.filter((t) => t.id === "argocd" || t.id === "flux");
+  if (gitops.length > 1)
+    messages.push({
+      severity: "warning",
+      technologyIds: gitops.map((t) => t.id),
+      message:
+        "Argo CD and Flux both act as GitOps controllers for the cluster.",
+      resolution: "Choose one GitOps controller.",
+    });
   const frameworks = selected.filter((t) => t.category === "frontend");
   if (frameworks.length > 1)
     messages.push({

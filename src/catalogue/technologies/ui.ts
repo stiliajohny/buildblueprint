@@ -45,6 +45,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "radix",
+    logo: "/logos/radix.svg",
     name: "Radix UI",
     slug: "radix",
     category: "ui",

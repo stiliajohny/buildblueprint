@@ -24,7 +24,6 @@ export function AuthForm({
   error?: string;
 }) {
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [token, setToken] = useState("");
@@ -87,33 +86,25 @@ export function AuthForm({
         );
         return;
       }
-      if (sent && (mode === "otp" || mode === "phone")) {
-        const result =
-          mode === "phone"
-            ? await auth.verifyOtp({ phone, token, type: "sms" })
-            : await auth.verifyOtp({ email, token, type: "email" });
+      if (sent && mode === "otp") {
+        const result = await auth.verifyOtp({ email, token, type: "email" });
         if (result.error) throw result.error;
         location.assign("/projects");
         return;
       }
-      const result =
-        mode === "phone"
-          ? await auth.signInWithOtp({ phone })
-          : await auth.signInWithOtp({
-              email,
-              options:
-                mode === "magic"
-                  ? { emailRedirectTo: `${location.origin}/auth/callback` }
-                  : { shouldCreateUser: true },
-            });
+      const result = await auth.signInWithOtp({
+        email,
+        options:
+          mode === "magic"
+            ? { emailRedirectTo: `${location.origin}/auth/callback` }
+            : { shouldCreateUser: true },
+      });
       if (result.error) throw result.error;
       setSent(true);
       setStatus(
-        mode === "phone"
-          ? `We sent a code to ${phone}.`
-          : mode === "otp"
-            ? `We sent a code to ${email}.`
-            : `We sent a sign-in link to ${email}.`,
+        mode === "otp"
+          ? `We sent a code to ${email}.`
+          : `We sent a sign-in link to ${email}.`,
       );
     } catch (caught) {
       setError(messageFrom(caught));
@@ -163,34 +154,18 @@ export function AuthForm({
           )}
           {!finished && (
             <form onSubmit={(event) => void onSubmit(event)}>
-              {mode === "phone" ? (
-                <Field id="phone" label="Phone number">
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    inputMode="tel"
-                    required
-                    placeholder="+1 555 0100"
-                    value={phone}
-                    onChange={(event) => setPhone(event.target.value)}
-                  />
-                </Field>
-              ) : (
-                <Field id="email" label="Email">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    autoFocus
-                    required
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                  />
-                </Field>
-              )}
+              <Field id="email" label="Email">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </Field>
               {mode === "signin" && (
                 <PasswordField
                   id="password"
@@ -220,7 +195,7 @@ export function AuthForm({
                   />
                 </>
               )}
-              {sent && (mode === "otp" || mode === "phone") && (
+              {sent && mode === "otp" && (
                 <Field id="token" label="Verification code">
                   <input
                     id="token"
@@ -275,7 +250,6 @@ export function AuthForm({
             <nav className="auth-alt" aria-label="Other sign-in methods">
               <Link href="/auth?mode=magic">Email link</Link>
               <Link href="/auth?mode=otp">Email code</Link>
-              <Link href="/auth?mode=phone">Phone code</Link>
             </nav>
           )}
         </>
@@ -378,12 +352,6 @@ function screenCopy(mode: AuthMode, sent: boolean) {
     return {
       title: "Email sign-in code",
       detail: "We will email you a one-time code.",
-      action: sent ? "Verify code" : "Send code",
-    };
-  if (mode === "phone")
-    return {
-      title: "Phone sign-in code",
-      detail: "We will text you a one-time code.",
       action: sent ? "Verify code" : "Send code",
     };
   return {

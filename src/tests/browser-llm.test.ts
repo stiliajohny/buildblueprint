@@ -1,18 +1,23 @@
-import { describe, expect, it } from "vitest";
-import { defaultProject, projectSchema } from "@/types/project";
 import { generateFiles } from "@/features/generator";
+import { projectContext } from "@/lib/ai/context";
 import {
-  browserLlmCookie,
-  parseBrowserLlmChoice,
+    browserLlmCookie,
+    parseBrowserLlmChoice,
 } from "@/lib/browser-ai/consent";
 import { models } from "@/lib/browser-ai/models";
 import { sanitizeMessages } from "@/lib/browser-ai/provider";
-import { projectContext } from "@/lib/ai/context";
 import {
-  emptyEnhancementAnswers,
-  promptDiscussion,
-  refineMessages,
+    currentMasterPrompt,
+    emptyEnhancementAnswers,
+    extractRefinedPrompt,
+    promptDiscussion,
+    refineMaxNewTokens,
+    refineMessages,
+    refineSystemPrompt,
+    wantsPromptRefine,
 } from "@/lib/browser-ai/refine";
+import { defaultProject, projectSchema } from "@/types/project";
+import { describe, expect, it } from "vitest";
 
 describe("browser model consent", () => {
   it("asks again until the cookie stores a real choice", () => {
@@ -50,10 +55,29 @@ describe("local prompt rewrite", () => {
       audience: "clinic staff",
       outcome: "book a visit",
     });
-    expect(message).toContain("Rewrite the master prompt");
+    expect(message).toContain("Refine the master prompt");
     expect(message).toContain("clinic staff");
     expect(message).toContain("book a visit");
     expect(message).not.toContain("/api/ai");
+  });
+
+  it("routes refine requests onto the dedicated rewrite path", () => {
+    expect(wantsPromptRefine("Refine the master prompt")).toBe(true);
+    expect(wantsPromptRefine("rewrite the master prompt")).toBe(true);
+    expect(wantsPromptRefine("What should I change?")).toBe(false);
+    expect(refineMaxNewTokens).toBeGreaterThanOrEqual(2048);
+    expect(refineSystemPrompt).toContain("complete improved master prompt");
+  });
+
+  it("strips chat fluff before saving a refined prompt", () => {
+    expect(
+      extractRefinedPrompt(
+        "Here is the revised master prompt:\n\n```markdown\nBuild the app.\n```",
+      ),
+    ).toBe("Build the app.");
+    expect(
+      extractRefinedPrompt("The refined prompt: Implement the selected stack."),
+    ).toBe("Implement the selected stack.");
   });
 
   it("gives the chat the live stack and the current master prompt", () => {
@@ -82,6 +106,7 @@ describe("local prompt rewrite", () => {
     );
     const payload = JSON.stringify(messages);
     expect(messages[0].role).toBe("system");
+    expect(messages[0].content).toBe(refineSystemPrompt);
     expect(payload).toContain("clinic staff");
     expect(payload).toContain("book a visit");
     expect(payload).toContain("billing");
@@ -89,6 +114,28 @@ describe("local prompt rewrite", () => {
     expect(payload).toContain("Next.js");
     expect(payload).toContain("CURRENT MASTER PROMPT");
     expect(payload).not.toContain("/api/ai");
+  });
+
+  it("accepts a custom system prompt for the refine pass", () => {
+    const messages = refineMessages(
+      defaultProject,
+      emptyEnhancementAnswers(),
+      "PROMPT",
+      "Keep the stack exact and return only the prompt.",
+    );
+    expect(messages[0].content).toBe(
+      "Keep the stack exact and return only the prompt.",
+    );
+  });
+
+  it("reads the live master prompt for a refine pass", () => {
+    expect(
+      currentMasterPrompt({
+        ...defaultProject,
+        refinedPrompt: "SAVED MASTER PROMPT",
+      }),
+    ).toBe("SAVED MASTER PROMPT");
+    expect(currentMasterPrompt(defaultProject)).toContain("STACK.yaml");
   });
 
   it("keeps only recent chat turns for the worker", () => {

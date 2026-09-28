@@ -2,6 +2,7 @@ import type { Technology } from "@/types/technology";
 export const technologies: Technology[] = [
   {
     id: "flagsmith",
+    logo: "/logos/flagsmith.svg",
     name: "Flagsmith",
     slug: "flagsmith",
     category: "feature-flags",
@@ -28,6 +29,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "launchdarkly",
+    logo: "/logos/launchdarkly.svg",
     name: "LaunchDarkly",
     slug: "launchdarkly",
     category: "feature-flags",
@@ -54,6 +56,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "growthbook",
+    logo: "/logos/growthbook.svg",
     name: "GrowthBook",
     slug: "growthbook",
     category: "feature-flags",
@@ -80,6 +83,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "unleash",
+    logo: "/logos/unleash.svg",
     name: "Unleash",
     slug: "unleash",
     category: "feature-flags",
@@ -106,6 +110,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "configcat",
+    logo: "/logos/configcat.svg",
     name: "ConfigCat",
     slug: "configcat",
     category: "feature-flags",
@@ -132,6 +137,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "openfeature",
+    logo: "/logos/openfeature.svg",
     name: "OpenFeature",
     slug: "openfeature",
     category: "feature-flags",

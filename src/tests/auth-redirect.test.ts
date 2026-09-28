@@ -7,6 +7,7 @@ describe("auth screens", () => {
     expect(authMode("signup")).toBe("signup");
     expect(authMode("forgot")).toBe("forgot");
     expect(authMode(undefined)).toBe("signin");
+    expect(authMode("phone")).toBe("signin");
     expect(authMode("https://evil.example")).toBe("signin");
   });
 

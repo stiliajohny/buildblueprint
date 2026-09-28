@@ -8,7 +8,7 @@ The app is served from the deployment origin. Local development uses `http://loc
 
 - Validate bodies and path ids with Zod.
 - Read JSON with `boundedJson` (64 KB).
-- Call `validOrigin` before a state change. A present `Origin` must match the request origin, or the response is HTTP 403.
+- Call `validOrigin` before a state change. A present `Origin` must match the request URL origin or the `Host` the client used, or the response is HTTP 403.
 - Do not put secrets, stack traces, or SQL in the response.
 - Send `Cache-Control: private, no-store` on authenticated project reads.
 

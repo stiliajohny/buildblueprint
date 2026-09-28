@@ -23,6 +23,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "clarity",
+    logo: "/logos/clarity.svg",
     name: "Microsoft Clarity",
     slug: "clarity",
     category: "analytics",
@@ -64,6 +65,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "amplitude",
+    logo: "/logos/amplitude.svg",
     name: "Amplitude",
     slug: "amplitude",
     category: "analytics",
@@ -147,6 +149,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "plausible",
+    logo: "/logos/plausible.svg",
     name: "Plausible",
     slug: "plausible",
     category: "analytics",

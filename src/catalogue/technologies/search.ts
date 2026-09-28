@@ -23,6 +23,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "typesense",
+    logo: "/logos/typesense.svg",
     name: "Typesense",
     slug: "typesense",
     category: "search",

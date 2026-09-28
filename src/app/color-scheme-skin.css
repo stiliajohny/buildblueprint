@@ -1,0 +1,234 @@
+/* Selected colour pair. Loaded after the UI style skin so these tokens win. */
+
+html[data-color-scheme] {
+  --bb-background: var(--scheme-background);
+  --bb-sidebar: var(--scheme-background);
+  --bb-surface: var(--scheme-surface);
+  --bb-surface-muted: color-mix(
+    in srgb,
+    var(--scheme-accent) 8%,
+    var(--scheme-surface)
+  );
+  --bb-text: var(--scheme-text);
+  --bb-text-secondary: var(--scheme-muted);
+  --bb-text-muted: color-mix(
+    in srgb,
+    var(--scheme-muted) 72%,
+    var(--scheme-background)
+  );
+  --bb-border: color-mix(
+    in srgb,
+    var(--scheme-text) 16%,
+    var(--scheme-surface)
+  );
+  --bb-border-light: color-mix(
+    in srgb,
+    var(--scheme-text) 8%,
+    var(--scheme-surface)
+  );
+  --bb-primary: var(--scheme-accent);
+  --bb-primary-hover: color-mix(
+    in srgb,
+    var(--scheme-accent) 78%,
+    var(--scheme-text)
+  );
+  --bb-primary-soft: color-mix(
+    in srgb,
+    var(--scheme-accent) 16%,
+    var(--scheme-surface)
+  );
+  --bb-primary-border: var(--scheme-accent);
+  --bb-primary-soft-border: color-mix(
+    in srgb,
+    var(--scheme-accent) 42%,
+    var(--scheme-surface)
+  );
+  --bb-on-primary: var(--scheme-on-accent);
+  --bb-recommendation-text: var(--scheme-muted);
+  --bb-mark-color: var(--scheme-muted);
+  --bb-checkbox-border: color-mix(
+    in srgb,
+    var(--scheme-text) 32%,
+    var(--scheme-surface)
+  );
+  --bb-card-hover-border: color-mix(
+    in srgb,
+    var(--scheme-text) 28%,
+    var(--scheme-surface)
+  );
+  --bb-card-hover-bg: color-mix(
+    in srgb,
+    var(--scheme-accent) 8%,
+    var(--scheme-surface)
+  );
+  --bb-card-selected-bg: color-mix(
+    in srgb,
+    var(--scheme-accent) 16%,
+    var(--scheme-surface)
+  );
+}
+
+html[data-color-scheme][data-ui-style="neumorphism"] {
+  --skin-bg: var(--bb-background);
+  --bb-border: transparent;
+  --bb-surface: var(--bb-background);
+  --bb-sidebar: var(--bb-background);
+  --bb-card-hover-bg: var(--bb-background);
+  --bb-card-selected-bg: var(--bb-background);
+  --bb-shadow:
+    4px 4px 10px
+      color-mix(in srgb, var(--scheme-text) 18%, var(--scheme-background)),
+    -4px -4px 10px color-mix(in srgb, white 62%, var(--scheme-surface));
+  --bb-modal-shadow:
+    8px 8px 18px
+      color-mix(in srgb, var(--scheme-text) 20%, var(--scheme-background)),
+    -8px -8px 18px color-mix(in srgb, white 68%, var(--scheme-surface));
+  --skin-shadow: var(--bb-modal-shadow);
+  --skin-inset:
+    inset 4px 4px 8px
+      color-mix(in srgb, var(--scheme-text) 18%, var(--scheme-background)),
+    inset -4px -4px 8px color-mix(in srgb, white 62%, var(--scheme-surface));
+}
+
+html[data-color-scheme][data-ui-style="neumorphism"]
+  .technology-card:hover:not(.selected) {
+  box-shadow: var(--bb-modal-shadow);
+}
+
+html[data-color-scheme][data-ui-style="claymorphism"] {
+  --skin-bg: var(--bb-surface);
+  --skin-border: 3px solid color-mix(in srgb, white 72%, var(--scheme-surface));
+  --bb-shadow:
+    5px 5px 0
+      color-mix(in srgb, var(--scheme-text) 12%, var(--scheme-background)),
+    10px 14px 22px color-mix(in srgb, var(--scheme-text) 16%, transparent);
+  --bb-modal-shadow:
+    8px 8px 0
+      color-mix(in srgb, var(--scheme-text) 14%, var(--scheme-background)),
+    14px 18px 28px color-mix(in srgb, var(--scheme-text) 18%, transparent);
+  --skin-shadow: var(--bb-modal-shadow);
+}
+
+html[data-color-scheme][data-ui-style="claymorphism"] .btn.primary,
+html[data-color-scheme][data-ui-style="claymorphism"] .btn.primary:hover {
+  background: var(--bb-primary);
+  color: var(--bb-on-primary);
+  border-color: color-mix(in srgb, white 72%, var(--scheme-surface));
+}
+
+html[data-color-scheme][data-ui-style="neobrutalism"] {
+  --skin-bg: var(--bb-surface);
+  --skin-border: 3px solid var(--scheme-text);
+  --bb-border: var(--scheme-text);
+  --bb-shadow: 4px 4px 0 var(--scheme-text);
+  --bb-modal-shadow: 6px 6px 0 var(--scheme-text);
+  --skin-shadow: var(--bb-shadow);
+  --bb-card-selected-bg: var(--bb-primary);
+  --bb-primary-soft: var(--bb-primary);
+}
+
+html[data-color-scheme][data-ui-style="neobrutalism"] .btn.primary,
+html[data-color-scheme][data-ui-style="neobrutalism"] .btn.primary:hover,
+html[data-color-scheme][data-ui-style="neobrutalism"] .step.active {
+  background: var(--bb-primary);
+  color: var(--bb-on-primary);
+  border-color: var(--scheme-text);
+}
+
+html[data-color-scheme][data-ui-style="bento"],
+html[data-color-scheme][data-ui-style="minimalism"] {
+  --skin-bg: var(--bb-surface);
+}
+
+html[data-color-scheme][data-ui-style="minimalism"] {
+  --skin-bg: transparent;
+  --bb-border: var(--scheme-text);
+  --bb-primary: var(--scheme-text);
+  --bb-on-primary: var(--scheme-background);
+}
+
+html[data-color-scheme][data-ui-style="glassmorphism"] {
+  --bb-background: var(--scheme-background);
+  --bb-surface: color-mix(in srgb, var(--scheme-surface) 72%, transparent);
+  --bb-sidebar: color-mix(in srgb, var(--scheme-surface) 58%, transparent);
+  --skin-bg: color-mix(in srgb, var(--scheme-surface) 70%, transparent);
+  --bb-border: color-mix(in srgb, var(--scheme-text) 18%, transparent);
+}
+
+html[data-color-scheme][data-ui-style="glassmorphism"] body {
+  background:
+    radial-gradient(
+      circle at 8% 18%,
+      color-mix(in srgb, var(--scheme-accent) 75%, var(--scheme-surface)) 0
+        140px,
+      transparent 142px
+    ),
+    radial-gradient(
+      circle at 90% 10%,
+      color-mix(in srgb, var(--scheme-accent) 45%, var(--scheme-background)) 0
+        160px,
+      transparent 162px
+    ),
+    radial-gradient(
+      circle at 72% 88%,
+      color-mix(in srgb, var(--scheme-text) 22%, var(--scheme-accent)) 0 180px,
+      transparent 182px
+    ),
+    var(--scheme-background);
+  background-attachment: fixed;
+}
+
+html[data-color-scheme][data-ui-style="glassmorphism"] .btn.primary,
+html[data-color-scheme][data-ui-style="glassmorphism"] .btn.primary:hover {
+  background: var(--bb-primary);
+  color: var(--bb-on-primary);
+  border-color: var(--bb-primary);
+}
+
+html[data-color-scheme][data-ui-style="classic-desktop"] {
+  --skin-bg: var(--bb-surface);
+  --skin-shadow:
+    inset -1px -1px 0 var(--scheme-text),
+    inset 1px 1px 0 color-mix(in srgb, white 72%, var(--scheme-surface)),
+    inset -2px -2px 0
+      color-mix(in srgb, var(--scheme-text) 48%, var(--scheme-background)),
+    inset 2px 2px 0 color-mix(in srgb, white 28%, var(--scheme-surface));
+  --skin-inset:
+    inset 1px 1px 0 var(--scheme-text),
+    inset -1px -1px 0 color-mix(in srgb, white 72%, var(--scheme-surface)),
+    inset 2px 2px 0
+      color-mix(in srgb, var(--scheme-text) 48%, var(--scheme-background)),
+    inset -2px -2px 0 color-mix(in srgb, white 28%, var(--scheme-surface));
+}
+
+html[data-color-scheme][data-ui-style="terminal"],
+html[data-color-scheme][data-ui-style="editorial"],
+html[data-color-scheme][data-ui-style="brutalism"] {
+  --skin-border: 1px solid var(--scheme-text);
+  --bb-border: var(--scheme-text);
+  --skin-shadow: none;
+}
+
+html[data-color-scheme][data-ui-style="terminal"],
+html[data-color-scheme][data-ui-style="editorial"] {
+  --skin-bg: transparent;
+}
+
+html[data-color-scheme][data-ui-style="brutalism"] {
+  --skin-bg: var(--scheme-background);
+}
+
+html[data-color-scheme][data-ui-style="gloss"] {
+  --skin-bg: var(--bb-surface);
+  --skin-border: 1px solid color-mix(in srgb, white 36%, var(--bb-border));
+  --skin-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent),
+    0 1px 2px color-mix(in srgb, var(--scheme-text) 18%, transparent);
+}
+
+html[data-color-scheme][data-ui-style="hand-drawn"] {
+  --skin-bg: var(--bb-surface);
+  --skin-border: 2px solid var(--scheme-text);
+  --skin-shadow: 3px 3px 0
+    color-mix(in srgb, var(--scheme-text) 30%, transparent);
+}

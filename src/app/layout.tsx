@@ -2,8 +2,14 @@ import type { Metadata } from "next";
 import "@fontsource/inter/latin-400.css";
 import "@fontsource/inter/latin-500.css";
 import "@fontsource/inter/latin-600.css";
+import { HandDrawnFilter } from "@/components/hand-drawn-filter";
+import { UiStyleSync } from "@/components/ui-style-sync";
 import { themeInitScript } from "@/lib/theme";
+import { colorSchemeInitScript } from "@/lib/color-scheme-document";
+import { uiStyleInitScript } from "@/lib/ui-style-document";
 import "./globals.css";
+import "./ui-style-skin.css";
+import "./color-scheme-skin.css";
 export const metadata: Metadata = {
   title: "BuildBlueprint — Build your project stack",
   description:
@@ -25,6 +31,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: uiStyleInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: colorSchemeInitScript }} />
+        <HandDrawnFilter />
+        <UiStyleSync />
         {children}
       </body>
     </html>

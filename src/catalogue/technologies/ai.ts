@@ -2,6 +2,7 @@ import type { Technology } from "@/types/technology";
 export const technologies: Technology[] = [
   {
     id: "openai",
+    logo: "/logos/openai.svg",
     name: "OpenAI",
     slug: "openai",
     category: "ai",
@@ -64,6 +65,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "gemini",
+    logo: "/logos/gemini.svg",
     name: "Gemini",
     slug: "gemini",
     category: "ai",
@@ -84,6 +86,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "mistral",
+    logo: "/logos/mistral.svg",
     name: "Mistral",
     slug: "mistral",
     category: "ai",
@@ -104,6 +107,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "groq",
+    logo: "/logos/groq.svg",
     name: "Groq",
     slug: "groq",
     category: "ai",

@@ -1,5 +1,8 @@
 export const THEME_STORAGE_KEY = "bb-theme";
 
+/** Fired after the platform bright, dark, or system preference changes. */
+export const THEME_CHANGE_EVENT = "bb-theme-change";
+
 export const themePreferences = ["bright", "dark", "system"] as const;
 
 export type ThemePreference = (typeof themePreferences)[number];
@@ -15,16 +18,17 @@ export function isThemePreference(
  * Applies a preference on the document.
  * System mode leaves the resolved scheme to the browser.
  */
-export function applyTheme(preference: ThemePreference) {
+export function applyTheme(preference: ThemePreference, notify = true) {
   const root = document.documentElement;
   root.dataset.themePreference = preference;
   if (preference === "system") {
     root.removeAttribute("data-theme");
     root.style.colorScheme = "";
-    return;
+  } else {
+    root.dataset.theme = preference;
+    root.style.colorScheme = preference === "dark" ? "dark" : "light";
   }
-  root.dataset.theme = preference;
-  root.style.colorScheme = preference === "dark" ? "dark" : "light";
+  if (notify) window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
 /** Reads the saved preference, defaulting to the operating system. */

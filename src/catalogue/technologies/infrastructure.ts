@@ -65,6 +65,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "aws-cdk",
+    logo: "/logos/aws.svg",
     name: "AWS CDK",
     slug: "aws-cdk",
     category: "infrastructure",

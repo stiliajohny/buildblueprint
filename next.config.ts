@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
-  allowedDevOrigins: ["terminal.local"],
+  allowedDevOrigins: ["terminal.local", "127.0.0.1"],
   async headers() {
     return [
       {

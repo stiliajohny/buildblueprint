@@ -23,6 +23,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "glitchtip",
+    logo: "/logos/glitchtip.svg",
     name: "GlitchTip",
     slug: "glitchtip",
     category: "monitoring",
@@ -85,6 +86,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "signoz",
+    logo: "/logos/signoz.svg",
     name: "SigNoz",
     slug: "signoz",
     category: "monitoring",

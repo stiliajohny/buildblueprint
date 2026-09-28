@@ -9,7 +9,10 @@ export const steps = [
   ["monitoring", "Monitoring", "Errors and observability"],
   ["features", "Feature flags", "Release and experimentation"],
   ["libraries", "Libraries", "Runtime, UI and libraries"],
+  ["ui-style", "UI style", "Look of the interface"],
+  ["appearance", "Colours & themes", "Theme and palette"],
   ["deployment", "Deployment", "Hosting and infrastructure"],
+  ["automation", "Automation", "Pipelines and delivery"],
   ["security", "Security", "Best practices and tooling"],
   ["review", "Review", "Your project blueprint"],
 ] as const;
@@ -24,6 +27,7 @@ export const stepCategories: Record<string, string[]> = {
   features: ["feature-flags"],
   libraries: ["runtime", "ui", "frontend-library", "backend-library"],
   deployment: ["deployment", "infrastructure"],
+  automation: ["ci", "cd"],
 };
 export function stepFor(category: string) {
   return (
@@ -53,4 +57,6 @@ export const categoryLabels: Record<string, string> = {
   infrastructure: "Infrastructure as code",
   deployment: "Hosting & edge",
   runtime: "JavaScript runtime",
+  ci: "Continuous integration",
+  cd: "Continuous delivery",
 };

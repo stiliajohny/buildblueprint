@@ -1,9 +1,9 @@
 import {
-  pipeline,
-  TextStreamer,
-  env,
-  InterruptableStoppingCriteria,
-  type TextGenerationPipeline,
+    env,
+    InterruptableStoppingCriteria,
+    pipeline,
+    TextStreamer,
+    type TextGenerationPipeline,
 } from "@huggingface/transformers";
 import { models } from "./models";
 
@@ -64,11 +64,12 @@ async function run(data: Incoming) {
       skip_special_tokens: true,
       callback_function: (text) => self.postMessage({ type: "chunk", text }),
     });
-    const maxNewTokens = Math.min(1024, Math.max(32, data.maxNewTokens ?? 384));
+    const maxNewTokens = Math.min(2048, Math.max(32, data.maxNewTokens ?? 384));
     await generator(data.messages ?? [], {
       max_new_tokens: maxNewTokens,
       do_sample: false,
       repetition_penalty: 1.05,
+      return_full_text: false,
       streamer,
       stopping_criteria: stopping,
     });

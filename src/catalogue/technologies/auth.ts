@@ -127,6 +127,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "authjs",
+    logo: "/logos/authjs.svg",
     name: "Auth.js",
     slug: "authjs",
     category: "auth",
@@ -153,6 +154,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "workos",
+    logo: "/logos/workos.svg",
     name: "WorkOS",
     slug: "workos",
     category: "auth",
@@ -179,6 +181,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "cognito",
+    logo: "/logos/cognito.svg",
     name: "Cognito",
     slug: "cognito",
     category: "auth",

@@ -1,4 +1,4 @@
-const modes = ["signin", "signup", "forgot", "magic", "otp", "phone"] as const;
+const modes = ["signin", "signup", "forgot", "magic", "otp"] as const;
 
 export type AuthMode = (typeof modes)[number];
 

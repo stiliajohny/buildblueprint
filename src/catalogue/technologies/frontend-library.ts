@@ -50,6 +50,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "panda",
+    logo: "/logos/panda.svg",
     name: "Panda CSS",
     slug: "panda",
     category: "frontend-library",
@@ -97,6 +98,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "zustand",
+    logo: "/logos/zustand.svg",
     name: "Zustand",
     slug: "zustand",
     category: "frontend-library",
@@ -150,6 +152,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "jotai",
+    logo: "/logos/jotai.png",
     name: "Jotai",
     slug: "jotai",
     category: "frontend-library",
@@ -257,6 +260,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "apollo",
+    logo: "/logos/apollo.svg",
     name: "Apollo Client",
     slug: "apollo",
     category: "frontend-library",
@@ -283,6 +287,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "urql",
+    logo: "/logos/urql.svg",
     name: "urql",
     slug: "urql",
     category: "frontend-library",
@@ -336,6 +341,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "tanstack-form",
+    logo: "/logos/tanstack-form.svg",
     name: "TanStack Form",
     slug: "tanstack-form",
     category: "frontend-library",

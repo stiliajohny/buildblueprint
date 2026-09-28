@@ -1,26 +1,38 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { projectContext } from "@/lib/ai/context";
-import { browserLlm } from "@/lib/browser-ai/session";
-import {
-  claimChatSeed,
-  getTranscript,
-  releaseChatSeed,
-  setTranscript,
-  useTranscript,
-} from "@/lib/browser-ai/transcript";
 import { writeBrowserLlmChoice } from "@/lib/browser-ai/consent";
 import { models } from "@/lib/browser-ai/models";
+import {
+    currentMasterPrompt,
+    emptyEnhancementAnswers,
+    extractRefinedPrompt,
+    promptDiscussion,
+    refineMaxNewTokens,
+    refineMessages,
+    refineSystemPrompt,
+    wantsPromptRefine,
+    type ChatSeed,
+    type EnhancementAnswers,
+} from "@/lib/browser-ai/refine";
+import { browserLlm } from "@/lib/browser-ai/session";
+import {
+    claimChatSeed,
+    getTranscript,
+    releaseChatSeed,
+    setTranscript,
+    useTranscript,
+} from "@/lib/browser-ai/transcript";
 import { useBuilder } from "@/stores/builder-store";
 import type { Project } from "@/types/project";
+import { useEffect, useRef, useState } from "react";
 import { ModelDownload } from "./model-download";
 import { useBrowserLlm } from "./use-browser-llm";
 
 const suggestions = [
   "Review my current choices",
   "What should I change in this stack?",
-  "Rewrite the master prompt",
+  "Refine the master prompt",
 ];
 
 /** Docked on-device chat for stack choices and the master prompt. */
@@ -32,7 +44,7 @@ export function BrowserChat({
 }: {
   project: Project;
   live?: boolean;
-  seed?: { id: number; text: string } | null;
+  seed?: ChatSeed | null;
   onCloud?: () => void;
 }) {
   const llm = useBrowserLlm();
@@ -57,16 +69,73 @@ export function BrowserChat({
     let started = false;
     if (llm.status === "ready") {
       started = true;
-      void send(seed.text);
+      if (seed.mode === "refine") {
+        void refine(
+          seed.answers ?? emptyEnhancementAnswers(),
+          seed.systemPrompt ?? refineSystemPrompt,
+        );
+      } else if (wantsPromptRefine(seed.text)) {
+        void refine(emptyEnhancementAnswers(), refineSystemPrompt);
+      } else void send(seed.text);
     } else setDraft(seed.text.slice(0, 2000));
     return () => {
       if (!started) releaseChatSeed(seed.id);
     };
   }, [live, seed, llm.status]);
 
+  async function refine(
+    answers: EnhancementAnswers,
+    systemPrompt = refineSystemPrompt,
+  ) {
+    if (browserLlm.getSnapshot().status === "generating") return;
+    setDraft("");
+    setError("");
+    const label = promptDiscussion(answers);
+    const history = [
+      ...getTranscript().filter((turn) => turn.role !== "system"),
+      { role: "user" as const, content: label },
+    ];
+    setTranscript([...history, { role: "assistant", content: "" }]);
+    let answer = "";
+    try {
+      for await (const chunk of browserLlm.generate({
+        prompt: label,
+        project,
+        maxNewTokens: refineMaxNewTokens,
+        messages: refineMessages(
+          project,
+          answers,
+          currentMasterPrompt(project),
+          systemPrompt,
+        ),
+      })) {
+        answer += chunk.text;
+        setTranscript([...history, { role: "assistant", content: answer }]);
+      }
+      const cleaned = extractRefinedPrompt(answer);
+      if (!cleaned) {
+        setError(
+          "The local model did not return a prompt. Try again or use the 1.2B model.",
+        );
+        return;
+      }
+      if (cleaned !== answer.trim()) {
+        setTranscript([...history, { role: "assistant", content: cleaned }]);
+      }
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "The local model failed.",
+      );
+    }
+  }
+
   async function send(text = draft) {
     const prompt = text.trim();
     if (!prompt || browserLlm.getSnapshot().status === "generating") return;
+    if (wantsPromptRefine(prompt)) {
+      await refine(emptyEnhancementAnswers(), refineSystemPrompt);
+      return;
+    }
     setDraft("");
     setError("");
     const history = [
@@ -79,7 +148,7 @@ export function BrowserChat({
       for await (const chunk of browserLlm.generate({
         prompt,
         project,
-        maxNewTokens: /rewrite the master prompt/i.test(prompt) ? 768 : 384,
+        maxNewTokens: 512,
         messages: [
           { role: "system", content: projectContext(project) },
           ...history.slice(-8),
@@ -96,7 +165,11 @@ export function BrowserChat({
   }
 
   function applyPrompt(text: string) {
-    const next = text.trim().slice(0, 20000);
+    const next = extractRefinedPrompt(text).slice(0, 20000);
+    if (!next) {
+      setError("Nothing to save as the master prompt yet.");
+      return;
+    }
     update({ refinedPrompt: next });
     setSavedText(next);
   }
@@ -140,8 +213,8 @@ export function BrowserChat({
             {turns.length === 0 && (
               <>
                 <p className="muted">
-                  Ask about the choices in this blueprint, or rewrite the master
-                  prompt. Replies stay in this browser.
+                  Ask about the choices in this blueprint, or refine the master
+                  prompt with AI. Replies stay in this browser.
                 </p>
                 <div className="chat-suggestions">
                   {suggestions.map((suggestion) => (
@@ -161,7 +234,8 @@ export function BrowserChat({
               const saved =
                 turn.role === "assistant" &&
                 savedText.length > 0 &&
-                savedText === turn.content.trim().slice(0, 20000);
+                savedText ===
+                  extractRefinedPrompt(turn.content).slice(0, 20000);
               return (
                 <div key={index} className={`llm-bubble ${turn.role}`}>
                   <strong>
@@ -174,11 +248,11 @@ export function BrowserChat({
                     turn.content &&
                     !(busy && index === turns.length - 1) && (
                       <Button onClick={() => applyPrompt(turn.content)}>
-                        Use as master prompt
+                        Refine the master prompt
                       </Button>
                     )}
                   {saved && (
-                    <p className="saved-note">Saved as the master prompt.</p>
+                    <p className="saved-note">Master prompt refined.</p>
                   )}
                 </div>
               );
@@ -220,7 +294,7 @@ export function BrowserChat({
         <div className="chat-setup">
           {draft && (
             <p className="muted">
-              Your note is ready to send once the model loads.
+              Your refine request is ready to send once the model loads.
             </p>
           )}
           <ModelDownload

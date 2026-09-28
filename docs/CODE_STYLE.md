@@ -28,7 +28,7 @@ TypeScript, React 19, Next.js App Router, Tailwind CSS 4, Base UI, shadcn-style 
 - Give props a TypeScript type.
 - Cover loading, error, and empty states on screens that fetch or wait.
 - Reuse `src/components/ui` before adding another control.
-- Keep the dense light layout: no gradients or large shadows. Header 46px, sidebar 274px, summary 356px. Cards use an 8px radius and are at least 74px tall.
+- Keep the dense light layout: no gradients or large shadows. Header 46px, sidebar 274px, summary 356px. Cards use an 8px radius and are at least 74px tall. A selected UI style sets `data-ui-style` on the document and restyles the platform. A selected colour pair sets `data-color-scheme` and replaces the platform colours. With neither selected, keep this default.
 
 ## Comments
 
