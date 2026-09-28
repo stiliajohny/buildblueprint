@@ -154,6 +154,7 @@ export const technologies: Technology[] = [
   }),
   entry({
     id: "woodpecker",
+    logo: "/logos/woodpecker.svg",
     name: "Woodpecker CI",
     slug: "woodpecker",
     kind: "ci",
@@ -166,6 +167,7 @@ export const technologies: Technology[] = [
   }),
   entry({
     id: "drone",
+    logo: "/logos/drone.svg",
     name: "Drone CI",
     slug: "drone",
     kind: "ci",
@@ -178,6 +180,7 @@ export const technologies: Technology[] = [
   }),
   entry({
     id: "earthly",
+    logo: "/logos/earthly.svg",
     name: "Earthly",
     slug: "earthly",
     kind: "ci",
@@ -235,6 +238,7 @@ export const technologies: Technology[] = [
   }),
   entry({
     id: "dagger",
+    logo: "/logos/dagger.svg",
     name: "Dagger",
     slug: "dagger",
     kind: "ci",
@@ -247,6 +251,7 @@ export const technologies: Technology[] = [
   }),
   entry({
     id: "harness",
+    logo: "/logos/harness.svg",
     name: "Harness",
     slug: "harness",
     kind: "cd",

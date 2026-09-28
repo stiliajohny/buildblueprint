@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parse } from "yaml";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { catalogue, byId } from "@/catalogue";
 import { automationStageIds, automationStages } from "@/catalogue/automation";
 import { uiStyles } from "@/catalogue/ui-styles";
@@ -39,6 +41,15 @@ describe("catalogue integrity", () => {
     expect(new Set(catalogue.map((t) => t.id)).size).toBe(catalogue.length);
     for (const technology of catalogue)
       expect(technologySchema.safeParse(technology).success).toBe(true);
+  });
+  it("gives every technology card a logo file", () => {
+    for (const technology of catalogue) {
+      expect(technology.logo, technology.id).toMatch(/^\/logos\/.+/);
+      expect(
+        existsSync(join(process.cwd(), "public", technology.logo!)),
+        `${technology.id} → ${technology.logo}`,
+      ).toBe(true);
+    }
   });
   it("has no dangling relationships", () => {
     for (const t of catalogue)

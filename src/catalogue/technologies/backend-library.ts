@@ -44,6 +44,7 @@ export const technologies: Technology[] = [
   },
   {
     id: "yup",
+    logo: "/logos/yup.svg",
     name: "Yup",
     slug: "yup",
     category: "backend-library",
