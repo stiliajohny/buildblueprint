@@ -384,7 +384,6 @@ html[data-ui-style]
     .project-row,
     .prompt-enhance,
     .file-browser,
-    .modal,
     .search-launch,
     .mode-switch,
     .theme-switch,
@@ -401,6 +400,19 @@ html[data-ui-style]
   border-radius: var(--skin-radius);
   background: var(--skin-bg);
   box-shadow: var(--skin-shadow);
+}
+
+/* Modals float over a dimmed page — never inherit transparent card skins. */
+html[data-ui-style] .modal:not(:where(.style-preview *, .library-preview *)) {
+  border: var(--skin-border);
+  border-radius: var(--skin-radius);
+  background: var(--bb-surface);
+  box-shadow: var(--bb-modal-shadow);
+  color: var(--bb-text);
+}
+
+html[data-ui-style] .modal.sheet:not(:where(.style-preview *, .library-preview *)) {
+  border-radius: 0;
 }
 
 html[data-ui-style]

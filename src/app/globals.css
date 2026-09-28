@@ -1383,6 +1383,7 @@ html.is-resizing-summary * {
   overflow: auto;
   z-index: 51;
   background: var(--bb-surface);
+  color: var(--bb-text);
   border: 1px solid var(--bb-border);
   border-radius: 10px;
   box-shadow: var(--bb-modal-shadow);
